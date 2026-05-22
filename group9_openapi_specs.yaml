@@ -1,0 +1,1790 @@
+openapi: 3.0.3
+info:
+  title: TCSS 460 Group Project API
+  description: |
+    **Team:** Team 9
+    **Deployed URL:** https://tcss460-team-9-api-72a4ffcce368.herokuapp.com
+
+    A RESTful API for the TCSS 460 group project.
+  version: 0.2.0
+servers:
+  - url: https://tcss460-team-9-api-72a4ffcce368.herokuapp.com
+    description: Production API
+  - url: http://localhost:3000
+    description: Local development
+tags:
+  - name: General
+    description: General-purpose routes
+  - name: Movies
+    description: Movie endpoints
+  - name: Shows
+    description: TV show endpoints
+  - name: Reviews
+    description: User-authored reviews of movies and shows
+  - name: Users
+    description: User endpoints
+  - name: Community
+    description: Aggregated community rankings joined with TMDB metadata
+  - name: Issues
+    description: Bug reports submitted by end users and triaged by admins
+paths:
+  /status:
+    get:
+      tags:
+        - General
+      summary: Status
+      description: Get the status of the server.
+      responses:
+        "200":
+          description: Server is alive.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: Alive
+  /movies/{id}:
+    get:
+      tags:
+        - Movies
+      summary: Get movie details
+      description: Returns detailed information for a single movie by its TMDB ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 961323
+          description: TMDB movie ID
+      responses:
+        "200":
+          description: Movie details.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieResponse"
+        "400":
+          description: Invalid movie ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "404":
+          description: Movie not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Movie not found
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Internal server error
+        "502":
+          description: Bad gateway
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to fetch movie details
+  /movies/search:
+    get:
+      tags:
+        - Movies
+      summary: Search for movies with query strings
+      description: Returns movies matching search query. With no parameters, returns
+        movies sorted by popularity in descending order.
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+          description: Page number from the results. Clamps to last page
+        - name: lang
+          in: query
+          required: false
+          schema:
+            type: string
+            example: en
+            default: en
+          description: ISO-639 language code
+        - name: title
+          in: query
+          required: false
+          schema:
+            type: string
+            example: Nimona
+          description: Search for (case-insensitive) words within the title.
+        - name: description
+          in: query
+          required: false
+          explode: false
+          schema:
+            type: array
+            example:
+              - knight
+              - crime
+          description: Filter results for (case-insensitive) words within the description.
+            Comma separated list
+        - name: after
+          in: query
+          required: false
+          schema:
+            type: string
+            example: 2022-05-17
+          description: Filter earliest release date allowed among search results (inclusive)
+        - name: before
+          in: query
+          required: false
+          schema:
+            type: string
+            example: 2026-03-22
+          description: Filter latest release date allowed among search results (inclusive)
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            default: popularity
+            enum:
+              - title
+              - popularity
+              - date
+              - rating
+          description: Field to sort on. If title parameter is included, uses the default
+            value
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+            default: desc
+            enum:
+              - asc
+              - desc
+          description: Sorting order
+      responses:
+        "200":
+          description: One page of returned movies, with 0 - 20 movies per page.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoviesSearchResponse"
+        "400":
+          description: Bad query string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Internal server error
+        "502":
+          description: Bad gateway
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Network error
+  /shows/{id}:
+    get:
+      tags:
+        - Shows
+      summary: Get TV show details
+      description: Returns detailed metadata for a specific TV show.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: TMDB series ID
+      responses:
+        "200":
+          description: TV show details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShowResponse"
+        "400":
+          description: Invalid show ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "404":
+          description: Show not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Show not found
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Network error
+        "502":
+          description: Bad gateway
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to fetch show data
+  /shows/search:
+    get:
+      tags:
+        - Shows
+      summary: Search for shows with query strings
+      description: Returns shows matching search query. With no parameters, returns
+        shows sorted by popularity in descending order.
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+          description: Page number from the results. Clamps to last page
+        - name: lang
+          in: query
+          required: false
+          schema:
+            type: string
+            example: en
+            default: en
+          description: ISO-639 language code
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
+            example: Breaking Bad
+          description: Search for (case-insensitive) words within the name.
+        - name: description
+          in: query
+          required: false
+          explode: false
+          schema:
+            type: array
+            example:
+              - teacher
+              - chemistry
+          description: Filter results for (case-insensitive) words within the description.
+            Comma separated list
+        - name: after
+          in: query
+          required: false
+          schema:
+            type: string
+            example: 2007-01-13
+          description: Filter earliest first air date allowed among search results
+            (inclusive)
+        - name: before
+          in: query
+          required: false
+          schema:
+            type: string
+            example: 2010-03-14
+          description: Filter latest first air date allowed among search results (inclusive)
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            default: popularity
+            enum:
+              - name
+              - popularity
+              - date
+              - rating
+          description: Field to sort on. If name parameter is included, uses the default
+            value.
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+            default: desc
+            enum:
+              - asc
+              - desc
+          description: Sorting order. If name parameter is included, uses the default value.
+      responses:
+        "200":
+          description: One page of returned shows, with 0 - 20 shows per page.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShowsSearchResponse"
+        "400":
+          description: Bad query string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Internal server error
+        "502":
+          description: Bad gateway
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Network error
+  /issues:
+    post:
+      tags:
+        - Issues
+      summary: Submit a bug report
+      description: >
+        Public endpoint, no authentication required. Creates a new issue with
+
+        a default status of `Open`. The optional `reporterEmail` is stored but
+
+        never returned by any public response. The optional `severity` defaults
+
+        to `Minor` when omitted. Clients MUST NOT set `status`, `id`,
+        `createdAt`,
+
+        or `updatedAt` on creation; doing so returns 400.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateIssueRequest"
+      responses:
+        "201":
+          description: Issue submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - id
+                  - message
+                properties:
+                  id:
+                    type: integer
+                    example: 42
+                  message:
+                    type: string
+                    example: Issue submitted successfully
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to create issue
+    get:
+      tags:
+        - Issues
+      summary: List all issues (admin)
+      description: |
+        Admin-only. Returns every issue including the `reporterEmail` field so
+        admins can follow up on bug reports during triage. Sorted newest first.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Array of issues with admin fields included
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/IssueAdmin"
+        "401":
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthenticatedErrorResponse"
+        "403":
+          description: Caller is not an admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to fetch issues
+  /issues/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Issue ID
+    get:
+      tags:
+        - Issues
+      summary: Get an issue by ID (admin)
+      description: Admin-only. Returns the full issue including `reporterEmail`.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Issue found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IssueAdmin"
+        "400":
+          description: Invalid issue ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthenticatedErrorResponse"
+        "403":
+          description: Caller is not an admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedErrorResponse"
+        "404":
+          description: Issue not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissingErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to fetch issue
+    patch:
+      tags:
+        - Issues
+      summary: Update an issue's status or severity (admin)
+      description: |
+        Admin-only. Accepts a partial body containing `status`, `severity`, or
+        both. At least one field must be provided; an empty body returns 400.
+        Unknown fields are rejected with 400.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateIssueRequest"
+      responses:
+        "200":
+          description: Issue updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IssueAdmin"
+        "400":
+          description: Validation failed (empty body, unknown field, or invalid enum value)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthenticatedErrorResponse"
+        "403":
+          description: Caller is not an admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedErrorResponse"
+        "404":
+          description: Issue not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissingErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to update issue
+    delete:
+      tags:
+        - Issues
+      summary: Delete an issue (admin)
+      description: Admin-only. Permanently removes the issue.
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Issue deleted
+        "400":
+          description: Invalid issue ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthenticatedErrorResponse"
+        "403":
+          description: Caller is not an admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedErrorResponse"
+        "404":
+          description: Issue not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissingErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to delete issue
+  /reviews:
+    get:
+      tags:
+        - Reviews
+      summary: List reviews
+      description: |
+        Returns a paginated list of reviews, newest first. Optionally filter by
+        `tmdbId` and `mediaType` to fetch all reviews for a specific title.
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+          description: 1-indexed page number
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+          description: Page size (capped at 100)
+        - name: tmdbId
+          in: query
+          required: false
+          schema:
+            type: integer
+            example: 961323
+          description: Filter to reviews of a specific TMDB title
+        - name: mediaType
+          in: query
+          required: false
+          schema:
+            type: string
+            default: MOVIE
+            enum:
+              - MOVIE
+              - TV
+          description: Filter to reviews of a specific media type
+      responses:
+        "200":
+          description: Paginated list of reviews
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReviewListResponse"
+        "400":
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Internal server error
+    post:
+      tags:
+        - Reviews
+      summary: Create a review
+      description: |
+        Creates a review authored by the authenticated user. Returns 409 if the
+        user has already reviewed this `(tmdbId, mediaType)` pair — clients must
+        use PUT to edit instead.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateReviewRequest"
+      responses:
+        "201":
+          description: Review created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthenticatedErrorResponse"
+        "409":
+          description: User has already reviewed this title
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConflictErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to create review
+  /reviews/me:
+    get:
+      tags:
+        - Reviews
+      summary: List the caller's own reviews
+      description: |
+        Returns every review authored by the authenticated caller, newest first.
+        The caller is resolved from the JWT `sub` claim only; any `userId` query
+        parameter is ignored. An empty list is returned (200, not 404) when the
+        caller has no reviews. Each review includes an `author` identity object
+        so the shape is consistent with `GET /reviews` and `GET /reviews/{id}`.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Array of the caller's reviews (newest first)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Review"
+        "401":
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthenticatedErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to fetch reviews
+  /reviews/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: Review ID
+    get:
+      tags:
+        - Reviews
+      summary: Get a review by ID
+      responses:
+        "200":
+          description: Review found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "400":
+          description: Invalid review ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "404":
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissingErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Internal server error
+    put:
+      tags:
+        - Reviews
+      summary: Update a review
+      description: >
+        Replaces `title`, `body`, and `score` on an existing review. Only the
+
+        original author may edit a review — admins cannot edit other users'
+        reviews.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateReviewRequest"
+      responses:
+        "200":
+          description: Review updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Review"
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthenticatedErrorResponse"
+        "403":
+          description: Caller is not the review author
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedErrorResponse"
+        "404":
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissingErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Internal server error
+    delete:
+      tags:
+        - Reviews
+      summary: Delete a review
+      description: |
+        Deletes a review. The author may delete their own review; users with the
+        Admin role may delete any review.
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Review deleted
+        "401":
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthenticatedErrorResponse"
+        "403":
+          description: Caller is neither the author nor an admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedErrorResponse"
+        "404":
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissingErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Internal server error
+  /users/me:
+    get:
+      tags:
+        - Users
+      summary: Get the current user
+      description: Returns the profile of the authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current user profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthenticatedErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissingErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Internal server error
+  /users/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: User ID
+    get:
+      tags:
+        - Users
+      summary: Get a user by ID
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid user ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthenticatedErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissingErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Internal server error
+    put:
+      tags:
+        - Users
+      summary: Update a user
+      description: >
+        Updates `email` and/or `role` on a user. The owner may update their own
+
+        email; only Admin may change a user's role. Unknown fields in the
+        request
+
+        body are silently ignored.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthenticatedErrorResponse"
+        "403":
+          description: Caller is neither the owner nor an admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissingErrorResponse"
+        "409":
+          description: Email already in use by another user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConflictErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Internal server error
+    delete:
+      tags:
+        - Users
+      summary: Delete a user
+      description: >
+        Permanently removes the user and all associated reviews (cascade
+        delete).
+
+        The owner may delete their own account; Admin may delete any account.
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: User deleted
+        "400":
+          description: Invalid user ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "401":
+          description: Missing or invalid bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthenticatedErrorResponse"
+        "403":
+          description: Caller is neither the owner nor an admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UnauthorizedErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissingErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to delete user
+  /community:
+    get:
+      tags:
+        - Community
+      summary: Community-ranked discovery feed
+      description: |
+        Returns titles ranked by community ratings or review volume, joined with
+        TMDB metadata (title, poster, release date). No authentication required.
+      parameters:
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - rating
+              - reviews
+            default: rating
+          description: |
+            `rating` — sort by highest average community score (descending).
+            `reviews` — sort by most reviews regardless of score (descending).
+        - name: minReviews
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 2
+            minimum: 1
+          description: Minimum number of reviews a title must have to appear in results.
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+          description: 1-indexed page number
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 50
+          description: Page size (capped at 50)
+      responses:
+        "200":
+          description: Paginated community feed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommunityFeedResponse"
+        "400":
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to fetch community feed
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    MoviesSearchResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+        page:
+          type: integer
+          example: 0
+        totalPages:
+          type: integer
+          example: 2
+          minimum: 0
+        results:
+          type: array
+          items:
+            type: object
+            minItems: 0
+            maxItems: 20
+            properties:
+              id:
+                type: integer
+                example: 961323
+              lang:
+                type: string
+                example: en
+              title:
+                type: string
+                example: Nimona
+              description:
+                type: string
+                example: A knight framed for a tragic crime teams with a scrappy, shape-shifting
+                  teen to prove his innocence.
+              releaseDate:
+                type: string
+                example: 2023-06-23
+              poster:
+                type: string
+                example: https://image.tmdb.org/t/p/w500/2NQljeavtfl22207D1kxLpa4LS3.jpg
+    MovieResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 961323
+        title:
+          type: string
+          example: Nimona
+        description:
+          type: string
+          example: A knight framed for a tragic crime teams with a scrappy, shape-shifting
+            teen to prove his innocence.
+        releaseDate:
+          type: string
+          example: 2023-06-23
+        poster:
+          type: string
+          example: https://image.tmdb.org/t/p/w500/2NQljeavtfl22207D1kxLpa4LS3.jpg
+        genres:
+          type: array
+          items:
+            type: string
+          example:
+            - Animation
+            - Family
+            - Adventure
+        runtime:
+          type: integer
+          example: 99
+        rating:
+          type: number
+          example: 7.9
+    ShowsSearchResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+        page:
+          type: integer
+          example: 0
+        totalPages:
+          type: integer
+          example: 1
+          minimum: 0
+        results:
+          type: array
+          items:
+            type: object
+            minItems: 0
+            maxItems: 20
+            properties:
+              id:
+                type: integer
+                example: 1396
+              lang:
+                type: string
+                example: en
+              name:
+                type: string
+                example: Breaking Bad
+              description:
+                type: string
+                example: A chemistry teacher diagnosed with cancer turns to manufacturing drugs.
+              firstAirDate:
+                type: string
+                example: 2008-01-20
+              poster:
+                type: string
+                example: https://image.tmdb.org/t/p/w500/ztkUQFLlC19CCMYHW9o1zWhJRNq.jpg
+    ShowResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+        id:
+          type: integer
+          example: 1396
+        name:
+          type: string
+          example: Breaking Bad
+        description:
+          type: string
+          example: A chemistry teacher diagnosed with cancer turns to manufacturing drugs.
+        posterUrl:
+          type: string
+          nullable: true
+          example: https://image.tmdb.org/t/p/w500/ztkUQFLlC19CCMYHW9o1zWhJRNq.jpg
+        firstAirDate:
+          type: string
+          example: 2008-01-20
+        lastAirDate:
+          type: string
+          example: 2013-09-29
+        numberOfSeasons:
+          type: integer
+          example: 5
+        numberOfEpisodes:
+          type: integer
+          example: 62
+        status:
+          type: string
+          example: Ended
+        networks:
+          type: array
+          items:
+            type: string
+          example:
+            - AMC
+        genres:
+          type: array
+          items:
+            type: string
+          example:
+            - Drama
+            - Crime
+    Author:
+      type: object
+      description: |
+        The stable public identity of the user who wrote a review or rating.
+        `username` is always present — if a user somehow has no username set,
+        the API falls back to their email address.
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: alice
+      required:
+        - id
+        - username
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 42
+        tmdbId:
+          type: integer
+          example: 961323
+        mediaType:
+          type: string
+          enum:
+            - MOVIE
+            - TV
+          example: MOVIE
+        title:
+          type: string
+          example: A surprisingly tender story
+        body:
+          type: string
+          example: I went in expecting a CGI cash grab and got something genuinely moving.
+        score:
+          type: integer
+          minimum: 1
+          maximum: 10
+          example: 9
+        userId:
+          type: integer
+          example: 1
+        author:
+          $ref: "#/components/schemas/Author"
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-04-25T18:30:00.000Z
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2026-04-25T18:30:00.000Z
+    CreateReviewRequest:
+      type: object
+      required:
+        - tmdbId
+        - mediaType
+        - title
+        - body
+        - score
+      properties:
+        tmdbId:
+          type: integer
+          example: 961323
+        mediaType:
+          type: string
+          enum:
+            - MOVIE
+            - TV
+        title:
+          type: string
+          minLength: 1
+          example: A surprisingly tender story
+        body:
+          type: string
+          minLength: 1
+          example: I went in expecting a CGI cash grab and got something genuinely moving.
+        score:
+          type: integer
+          minimum: 1
+          maximum: 10
+          example: 9
+    UpdateReviewRequest:
+      type: object
+      required:
+        - title
+        - body
+        - score
+      properties:
+        title:
+          type: string
+          minLength: 1
+        body:
+          type: string
+          minLength: 1
+        score:
+          type: integer
+          minimum: 1
+          maximum: 10
+    ReviewListResponse:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 137
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Review"
+    Issue:
+      type: object
+      description: Public-facing issue shape. `reporterEmail` is intentionally omitted.
+      required:
+        - id
+        - title
+        - description
+        - severity
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          example: 42
+        title:
+          type: string
+          example: Login broken on Safari
+        description:
+          type: string
+          example: Pressing the login button does nothing on Safari 17.4.
+        severity:
+          type: string
+          enum:
+            - Minor
+            - Major
+            - Critical
+          example: Major
+        status:
+          type: string
+          enum:
+            - Open
+            - InProgress
+            - Resolved
+            - Closed
+          example: Open
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-05-10T14:00:00.000Z
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2026-05-10T14:00:00.000Z
+    IssueAdmin:
+      type: object
+      description: |
+        Admin-only issue shape. Includes the public `Issue` fields plus
+        `reporterEmail` so admins can follow up on bug reports during triage.
+      required:
+        - id
+        - title
+        - description
+        - severity
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+          example: 42
+        title:
+          type: string
+          example: Login broken on Safari
+        description:
+          type: string
+          example: Pressing the login button does nothing on Safari 17.4.
+        severity:
+          type: string
+          enum:
+            - Minor
+            - Major
+            - Critical
+          example: Major
+        status:
+          type: string
+          enum:
+            - Open
+            - InProgress
+            - Resolved
+            - Closed
+          example: Open
+        reporterEmail:
+          type: string
+          format: email
+          nullable: true
+          example: reporter@example.com
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-05-10T14:00:00.000Z
+        updatedAt:
+          type: string
+          format: date-time
+          example: 2026-05-10T14:00:00.000Z
+    CreateIssueRequest:
+      type: object
+      required:
+        - title
+        - description
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: Login broken on Safari
+        description:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          example: Pressing the login button does nothing on Safari 17.4.
+        reporterEmail:
+          type: string
+          format: email
+          nullable: true
+          example: reporter@example.com
+        severity:
+          type: string
+          enum:
+            - Minor
+            - Major
+            - Critical
+          default: Minor
+          example: Major
+    UpdateIssueRequest:
+      type: object
+      description: |
+        At least one of `status` or `severity` must be supplied. Unknown fields
+        are rejected with 400.
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          enum:
+            - Open
+            - InProgress
+            - Resolved
+            - Closed
+          example: Resolved
+        severity:
+          type: string
+          enum:
+            - Minor
+            - Major
+            - Critical
+          example: Critical
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        email:
+          type: string
+          format: email
+          example: alice@example.com
+        role:
+          type: string
+          enum:
+            - User
+            - Admin
+          example: User
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-04-25T14:00:00.000Z
+      required:
+        - id
+        - email
+        - role
+        - createdAt
+    UpdateUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: newemail@example.com
+        role:
+          type: string
+          enum:
+            - User
+            - Admin
+          description: Only admins may change roles. If a non-admin sends this field, it
+            is silently ignored.
+    MissingErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Not found
+    ValidationErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Validation Failed
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+                example: id
+              message:
+                type: string
+                example: "Invalid input: expected number, recieved NaN"
+    UnauthorizedErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Unauthorized
+    UnauthenticatedErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Unauthenticated
+    ConflictErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Conflicting resource already exists
+    TmdbMeta:
+      type: object
+      nullable: true
+      description: |
+        TMDB metadata for the title. `null` if the title has been removed from
+        TMDB since the reviews were submitted.
+      properties:
+        title:
+          type: string
+          example: Nimona
+        poster:
+          type: string
+          nullable: true
+          example: https://image.tmdb.org/t/p/w500/2NQljeavtfl22207D1kxLpa4LS3.jpg
+        releaseDate:
+          type: string
+          example: 2023-06-23
+    CommunityFeedItem:
+      type: object
+      properties:
+        tmdbId:
+          type: integer
+          example: 961323
+        mediaType:
+          type: string
+          enum:
+            - MOVIE
+            - TV
+          example: MOVIE
+        averageScore:
+          type: number
+          format: float
+          minimum: 1
+          maximum: 10
+          example: 8.5
+          description: Community average score, rounded to one decimal place.
+        reviewCount:
+          type: integer
+          example: 12
+          description: Total number of reviews for this title.
+        tmdb:
+          $ref: "#/components/schemas/TmdbMeta"
+      required:
+        - tmdbId
+        - mediaType
+        - averageScore
+        - reviewCount
+        - tmdb
+    CommunityFeedResponse:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 45
+          description: Total number of titles that meet the minReviews threshold.
+        sort:
+          type: string
+          enum:
+            - rating
+            - reviews
+          example: rating
+        minReviews:
+          type: integer
+          example: 2
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommunityFeedItem"
+      required:
+        - page
+        - limit
+        - total
+        - sort
+        - minReviews
+        - results
