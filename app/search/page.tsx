@@ -5,8 +5,9 @@ import { useState } from "react";
 type Movie = {
   id: number;
   title: string;
-  overview: string;
+  overview?: string;
   release_date?: string;
+  poster?: string;
 };
 
 export default function SearchPage() {
@@ -26,11 +27,13 @@ export default function SearchPage() {
       setLoading(true);
       setError("");
 
-    const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/movies/search?title=${encodeURIComponent(search)}`;
+      const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/movies/search?title=${encodeURIComponent(
+        search
+      )}`;
 
-    console.log("Search URL:", url);
+      console.log("Search URL:", url);
 
-    const response = await fetch(url);
+      const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error("Failed to fetch movies");
@@ -58,66 +61,74 @@ export default function SearchPage() {
         padding: "2rem",
       }}
     >
-      <h1
-        style={{
-          fontSize: "2rem",
-          marginBottom: "2rem",
-          textAlign: "center",
-        }}
-      >
-        Movie Search
-      </h1>
-
-      <form
-        onSubmit={handleSearch}
+      <div
         style={{
           display: "flex",
-          gap: "1rem",
-          justifyContent: "center",
+          alignItems: "center",
           marginBottom: "2rem",
         }}
       >
-        <input
-          type="text"
-          placeholder="Search movies..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+        <a
+          href="/"
           style={{
-            padding: "0.8rem",
-            width: "300px",
-            borderRadius: "8px",
-            border: "1px solid white",
-            backgroundColor: "#111",
-            color: "white",
-          }}
-        />
-
-        <button
-          type="submit"
-          style={{
-            padding: "0.8rem 1.2rem",
-            borderRadius: "8px",
-            border: "1px solid white",
-            backgroundColor: "white",
-            color: "black",
-            cursor: "pointer",
+            color: "#3b82f6",
+            textDecoration: "none",
             fontWeight: "bold",
+            fontSize: "1.5rem",
           }}
         >
-          Search
-        </button>
-      </form>
+          MovieSocial
+        </a>
+
+        <form
+          onSubmit={handleSearch}
+          style={{
+            flex: 1,
+            display: "flex",
+            gap: "0.75rem",
+            justifyContent: "center",
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Search movies..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              padding: "0.7rem",
+              width: "260px",
+              borderRadius: "999px",
+              border: "1px solid #333",
+              backgroundColor: "#111",
+              color: "white",
+            }}
+          />
+
+          <button
+            type="submit"
+            style={{
+              padding: "0.7rem 1.2rem",
+              borderRadius: "999px",
+              border: "1px solid white",
+              backgroundColor: "white",
+              color: "black",
+              cursor: "pointer",
+              fontWeight: "bold",
+            }}
+          >
+            Search
+          </button>
+        </form>
+      </div>
 
       {loading && <p style={{ textAlign: "center" }}>Loading...</p>}
 
-      {error && (
-        <p style={{ textAlign: "center", color: "red" }}>{error}</p>
-      )}
+      {error && <p style={{ textAlign: "center", color: "red" }}>{error}</p>}
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
           gap: "1.5rem",
         }}
       >
@@ -131,9 +142,19 @@ export default function SearchPage() {
               padding: "1rem",
             }}
           >
-            <h2 style={{ marginBottom: "0.5rem" }}>
-              {movie.title}
-            </h2>
+            {movie.poster && (
+              <img
+                src={movie.poster}
+                alt={movie.title}
+                style={{
+                  width: "100%",
+                  borderRadius: "8px",
+                  marginBottom: "1rem",
+                }}
+              />
+            )}
+
+            <h2 style={{ marginBottom: "0.5rem" }}>{movie.title}</h2>
 
             <p style={{ color: "#aaa", marginBottom: "1rem" }}>
               {movie.release_date || "No release date"}
