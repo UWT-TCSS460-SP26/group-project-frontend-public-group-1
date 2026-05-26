@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 type Movie = {
@@ -11,7 +11,7 @@ type Movie = {
   poster?: string;
 };
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams();
 
   const [search, setSearch] = useState("");
@@ -28,8 +28,6 @@ export default function SearchPage() {
         query
       )}`;
 
-      console.log("Search URL:", url);
-
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -37,9 +35,6 @@ export default function SearchPage() {
       }
 
       const data = await response.json();
-
-      console.log(data);
-
       setMovies(data.results || data);
     } catch (err) {
       console.error(err);
@@ -77,13 +72,7 @@ export default function SearchPage() {
         padding: "2rem",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          marginBottom: "2rem",
-        }}
-      >
+      <div style={{ display: "flex", alignItems: "center", marginBottom: "2rem" }}>
         <a
           href="/"
           style={{
@@ -138,12 +127,7 @@ export default function SearchPage() {
       </div>
 
       {loading && <p style={{ textAlign: "center" }}>Loading...</p>}
-
-      {error && (
-        <p style={{ textAlign: "center", color: "red" }}>
-          {error}
-        </p>
-      )}
+      {error && <p style={{ textAlign: "center", color: "red" }}>{error}</p>}
 
       <div
         style={{
@@ -178,9 +162,7 @@ export default function SearchPage() {
               />
             )}
 
-            <h2 style={{ marginBottom: "0.5rem" }}>
-              {movie.title}
-            </h2>
+            <h2 style={{ marginBottom: "0.5rem" }}>{movie.title}</h2>
 
             <p style={{ color: "#aaa", marginBottom: "1rem" }}>
               {movie.release_date || "No release date"}
@@ -193,5 +175,13 @@ export default function SearchPage() {
         ))}
       </div>
     </main>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<main style={{ padding: "2rem" }}>Loading...</main>}>
+      <SearchContent />
+    </Suspense>
   );
 }
