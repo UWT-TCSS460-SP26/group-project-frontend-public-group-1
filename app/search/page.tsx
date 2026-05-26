@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 type Movie = {
   id: number;
@@ -11,24 +12,20 @@ type Movie = {
 };
 
 export default function SearchPage() {
+  const searchParams = useSearchParams();
+
   const [search, setSearch] = useState("");
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleSearch(event: React.FormEvent) {
-    event.preventDefault();
-
-    if (!search.trim()) {
-      return;
-    }
-
+  async function searchMovies(query: string) {
     try {
       setLoading(true);
       setError("");
 
       const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/movies/search?title=${encodeURIComponent(
-        search
+        query
       )}`;
 
       console.log("Search URL:", url);
@@ -50,6 +47,25 @@ export default function SearchPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  useEffect(() => {
+    const query = searchParams.get("q");
+
+    if (query) {
+      setSearch(query);
+      searchMovies(query);
+    }
+  }, [searchParams]);
+
+  async function handleSearch(event: React.FormEvent) {
+    event.preventDefault();
+
+    if (!search.trim()) {
+      return;
+    }
+
+    await searchMovies(search);
   }
 
   return (
@@ -123,7 +139,11 @@ export default function SearchPage() {
 
       {loading && <p style={{ textAlign: "center" }}>Loading...</p>}
 
-      {error && <p style={{ textAlign: "center", color: "red" }}>{error}</p>}
+      {error && (
+        <p style={{ textAlign: "center", color: "red" }}>
+          {error}
+        </p>
+      )}
 
       <div
         style={{
@@ -133,13 +153,17 @@ export default function SearchPage() {
         }}
       >
         {movies.map((movie) => (
-          <div
+          <a
             key={movie.id}
+            href={`/movies/${movie.id}`}
             style={{
               backgroundColor: "#111",
               border: "1px solid #333",
               borderRadius: "12px",
               padding: "1rem",
+              textDecoration: "none",
+              color: "white",
+              display: "block",
             }}
           >
             {movie.poster && (
@@ -154,7 +178,9 @@ export default function SearchPage() {
               />
             )}
 
-            <h2 style={{ marginBottom: "0.5rem" }}>{movie.title}</h2>
+            <h2 style={{ marginBottom: "0.5rem" }}>
+              {movie.title}
+            </h2>
 
             <p style={{ color: "#aaa", marginBottom: "1rem" }}>
               {movie.release_date || "No release date"}
@@ -163,7 +189,7 @@ export default function SearchPage() {
             <p style={{ fontSize: "0.9rem", lineHeight: "1.4" }}>
               {movie.overview || "No overview available."}
             </p>
-          </div>
+          </a>
         ))}
       </div>
     </main>
