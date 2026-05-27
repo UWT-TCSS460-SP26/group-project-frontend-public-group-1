@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-type MovieItem = {
+type ShowItem = {
   id: number;
   title: string;
   description?: string;
@@ -8,7 +8,7 @@ type MovieItem = {
   poster?: string;
 };
 
-async function getPopularMovies(): Promise<MovieItem[]> {
+async function getPopularTVShows(): Promise<ShowItem[]> {
   const rawBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   if (!rawBaseUrl) {
@@ -17,14 +17,14 @@ async function getPopularMovies(): Promise<MovieItem[]> {
 
   const baseUrl = rawBaseUrl.replace(/\/$/, "");
 
-  const response = await fetch(`${baseUrl}/movies/search?page=1`, {
+  const response = await fetch(`${baseUrl}/shows/search?page=1`, {
     cache: "no-store",
   });
 
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(
-      `Failed to fetch popular movies: ${response.status} ${response.statusText} - ${errorText}`
+      `Failed to fetch popular TV shows: ${response.status} ${response.statusText} - ${errorText}`
     );
   }
 
@@ -33,14 +33,12 @@ async function getPopularMovies(): Promise<MovieItem[]> {
   return data.results ?? [];
 }
 
-export default async function BrowsePage() {
-  const movies = await getPopularMovies();
+export default async function BrowseTVPage() {
+  const shows = await getPopularTVShows();
 
   return (
     <main style={{ padding: "2rem" }}>
-      <h1>Browse Popular Movies</h1>
-      <p>Explore popular movies before searching.</p>
-
+      <h1>Browse Popular TV Shows</h1>
       <div
         style={{
           display: "grid",
@@ -49,10 +47,10 @@ export default async function BrowsePage() {
           marginTop: "1.5rem",
         }}
       >
-        {movies.map((movie) => (
+        {shows.map((show) => (
           <a
-            key={movie.id}
-            href={`/movies/${movie.id}`}
+            key={show.id}
+            href={`/shows/${show.id}`}
             style={{
               border: "1px solid #ddd",
               borderRadius: "12px",
@@ -62,10 +60,10 @@ export default async function BrowsePage() {
               display: "block",
             }}
           >
-            {movie.poster && (
+            {show.poster && (
               <Image
-                src={movie.poster}
-                alt={movie.title}
+                src={show.poster}
+                alt={show.title}
                 width={500}
                 height={750}
                 style={{
@@ -78,16 +76,16 @@ export default async function BrowsePage() {
             )}
 
             <h2 style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>
-              {movie.title}
+              {show.title}
             </h2>
 
-            {movie.releaseDate && <p>{movie.releaseDate}</p>}
+            {show.releaseDate && <p>{show.releaseDate}</p>}
 
-            {movie.description && (
+            {show.description && (
               <p>
-                {movie.description.length > 120
-                  ? `${movie.description.slice(0, 120)}...`
-                  : movie.description}
+                {show.description.length > 120
+                  ? `${show.description.slice(0, 120)}...`
+                  : show.description}
               </p>
             )}
           </a>
