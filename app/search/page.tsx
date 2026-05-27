@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 type SearchItem = {
   id: number;
@@ -15,15 +16,15 @@ type SearchItem = {
   posterUrl?: string;
 };
 
-export default function SearchPage() {
+function SearchContent() {
+  const searchParams = useSearchParams();
+
   const [search, setSearch] = useState("");
   const [type, setType] = useState("movies");
   const [items, setItems] = useState<SearchItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-<<<<<<< Updated upstream
-=======
   async function runSearch(query: string, searchType: string) {
     try {
       setLoading(true);
@@ -67,7 +68,6 @@ export default function SearchPage() {
     }
   }, [searchParams]);
 
->>>>>>> Stashed changes
   async function handleSearch(event: React.FormEvent) {
     event.preventDefault();
 
@@ -75,37 +75,7 @@ export default function SearchPage() {
       return;
     }
 
-<<<<<<< Updated upstream
-    try {
-      setLoading(true);
-      setError("");
-
-      const url = `${process.env.NEXT_PUBLIC_API_BASE_URL}/movies/search?title=${encodeURIComponent(
-        search
-      )}`;
-
-      console.log("Search URL:", url);
-
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch movies");
-      }
-
-      const data = await response.json();
-
-      console.log(data);
-
-      setMovies(data.results || data);
-    } catch (err) {
-      console.error(err);
-      setError("Something went wrong while searching.");
-    } finally {
-      setLoading(false);
-    }
-=======
     await runSearch(search, type);
->>>>>>> Stashed changes
   }
 
   return (
@@ -122,11 +92,8 @@ export default function SearchPage() {
           display: "flex",
           alignItems: "center",
           marginBottom: "2rem",
-<<<<<<< Updated upstream
-=======
           gap: "1rem",
           flexWrap: "wrap",
->>>>>>> Stashed changes
         }}
       >
         <a
@@ -175,7 +142,6 @@ export default function SearchPage() {
       </div>
 
       {loading && <p style={{ textAlign: "center" }}>Loading...</p>}
-
       {error && <p style={{ textAlign: "center", color: "red" }}>{error}</p>}
 
       <div
@@ -185,35 +151,11 @@ export default function SearchPage() {
           gap: "1.5rem",
         }}
       >
-<<<<<<< Updated upstream
-        {movies.map((movie) => (
-          <div
-            key={movie.id}
-            style={{
-              backgroundColor: "#111",
-              border: "1px solid #333",
-              borderRadius: "12px",
-              padding: "1rem",
-            }}
-          >
-            {movie.poster && (
-              <img
-                src={movie.poster}
-                alt={movie.title}
-                style={{
-                  width: "100%",
-                  borderRadius: "8px",
-                  marginBottom: "1rem",
-                }}
-              />
-            )}
-=======
         {items.map((item) => {
           const title = item.title || item.name || "Untitled";
           const poster = item.poster || item.posterUrl;
           const description = item.overview || item.description;
           const date = item.release_date || item.releaseDate || item.firstAirDate;
->>>>>>> Stashed changes
 
           const currentSearchUrl = `/search?type=${type}&q=${encodeURIComponent(search)}`;
 
@@ -222,16 +164,6 @@ export default function SearchPage() {
               ? `/shows/${item.id}?from=${encodeURIComponent(currentSearchUrl)}`
               : `/movies/${item.id}?from=${encodeURIComponent(currentSearchUrl)}`;
 
-<<<<<<< Updated upstream
-            <p style={{ fontSize: "0.9rem", lineHeight: "1.4" }}>
-              {movie.overview || "No overview available."}
-            </p>
-          </div>
-        ))}
-      </div>
-    </main>
-  );
-=======
           return (
             <a key={item.id} href={href} style={cardStyle}>
               {poster && (
@@ -297,5 +229,4 @@ export default function SearchPage() {
       <SearchContent />
     </Suspense>
   );
->>>>>>> Stashed changes
 }
