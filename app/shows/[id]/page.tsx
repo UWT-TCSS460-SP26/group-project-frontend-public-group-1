@@ -6,7 +6,7 @@ type ShowDetail = {
   id: number;
   name: string;
   description?: string;
-  posterUrl?: string | null;
+  posterUrl?: string;
   firstAirDate?: string;
   lastAirDate?: string;
   numberOfSeasons?: number;
@@ -41,16 +41,19 @@ async function getShowDetail(id: string): Promise<ShowDetail> {
 
 export default async function ShowDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string }>;
 }) {
   const { id } = await params;
+  const { from } = await searchParams;
   const show = await getShowDetail(id);
   const session = await auth();
 
   return (
     <main style={{ padding: "2rem", maxWidth: "1000px", margin: "0 auto" }}>
-      <Link href="/browse">← Back to Browse</Link>
+      <Link href={from || "/?type=shows"}>← Back to TV Shows</Link>
 
       <section
         style={{
@@ -91,12 +94,6 @@ export default async function ShowDetailPage({
             </p>
           )}
 
-          {show.status && (
-            <p>
-              <strong>Status:</strong> {show.status}
-            </p>
-          )}
-
           {show.numberOfSeasons && (
             <p>
               <strong>Seasons:</strong> {show.numberOfSeasons}
@@ -106,6 +103,12 @@ export default async function ShowDetailPage({
           {show.numberOfEpisodes && (
             <p>
               <strong>Episodes:</strong> {show.numberOfEpisodes}
+            </p>
+          )}
+
+          {show.status && (
+            <p>
+              <strong>Status:</strong> {show.status}
             </p>
           )}
 

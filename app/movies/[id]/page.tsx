@@ -38,16 +38,19 @@ async function getMovieDetail(id: string): Promise<MovieDetail> {
 
 export default async function MovieDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string }>;
 }) {
   const { id } = await params;
+  const { from } = await searchParams;
   const movie = await getMovieDetail(id);
   const session = await auth();
 
   return (
     <main style={{ padding: "2rem", maxWidth: "1000px", margin: "0 auto" }}>
-      <Link href="/browse">← Back to Browse</Link>
+      <Link href={from || "/"}>← Back to Browse</Link>
 
       <section
         style={{
