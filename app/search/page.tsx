@@ -1,6 +1,11 @@
+/* eslint-disable react-hooks/set-state-in-effect */
+"use client";
+
+// search
 "use client";
 //search
 import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 type SearchItem = {
@@ -20,7 +25,7 @@ function SearchContent() {
   const searchParams = useSearchParams();
 
   const [search, setSearch] = useState("");
-  const [type, setType] = useState("movies");
+  const [type, setType] = useState(searchParams.get("type") || "movies");
   const [items, setItems] = useState<SearchItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -56,17 +61,14 @@ function SearchContent() {
     }
   }
 
-  useEffect(() => {
-    const query = searchParams.get("q");
-    const searchType = searchParams.get("type") || "movies";
+    useEffect(() => {
+      const query = searchParams.get("q");
+      const searchType = searchParams.get("type") || "movies";
 
-    setType(searchType);
-
-    if (query) {
-      setSearch(query);
-      runSearch(query, searchType);
-    }
-  }, [searchParams]);
+      if (query) {
+        runSearch(query, searchType);
+      }
+    }, [searchParams]);
 
   async function handleSearch(event: React.FormEvent) {
     event.preventDefault();
@@ -96,17 +98,17 @@ function SearchContent() {
           flexWrap: "wrap",
         }}
       >
-        <a
-          href="/"
-          style={{
-            color: "#3b82f6",
-            textDecoration: "none",
-            fontWeight: "bold",
-            fontSize: "1.5rem",
-          }}
-        >
-          MovieSocial
-        </a>
+          <Link
+      href="/"
+      style={{
+        color: "#3b82f6",
+        textDecoration: "none",
+        fontWeight: "bold",
+        fontSize: "1.5rem",
+      }}
+    >
+      MovieSocial
+    </Link>
 
         <form
           onSubmit={handleSearch}
