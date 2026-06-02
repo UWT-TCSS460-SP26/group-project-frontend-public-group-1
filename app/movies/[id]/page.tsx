@@ -35,13 +35,23 @@ async function getBaseUrl() {
   return rawBaseUrl.replace(/\/$/, "");
 }
 
-function getAccessToken(session: unknown): string | undefined {
-  return (
-    (session as any)?.accessToken?.value ||
-    (session as any)?.accessToken ||
-    (session as any)?.user?.accessToken?.value ||
-    (session as any)?.user?.accessToken
-  );
+type SessionWithAccessToken = {
+  accessToken?: string | { value?: string };
+  user?: {
+    accessToken?: string | { value?: string };
+  };
+};
+
+function getTokenValue(token?: string | { value?: string }): string | undefined {
+  if (typeof token === "string") {
+    return token;
+  }
+
+  return token?.value;
+}
+
+function getAccessToken(session: SessionWithAccessToken | null): string | undefined {
+  return getTokenValue(session?.accessToken) ?? getTokenValue(session?.user?.accessToken);
 }
 
 async function getMovieDetail(id: string): Promise<MovieDetail> {
@@ -96,7 +106,7 @@ export default async function MovieDetailPage({
     "use server";
 
     const session = await auth();
-    const token = getAccessToken(session);
+    const token = getAccessToken(session as SessionWithAccessToken | null);
 
     if (!token) {
       redirect(`/movies/${id}?reviewStatus=signin`);

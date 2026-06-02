@@ -38,13 +38,23 @@ async function getBaseUrl() {
   return rawBaseUrl.replace(/\/$/, "");
 }
 
-function getAccessToken(session: unknown): string | undefined {
-  return (
-    (session as any)?.accessToken?.value ||
-    (session as any)?.accessToken ||
-    (session as any)?.user?.accessToken?.value ||
-    (session as any)?.user?.accessToken
-  );
+type SessionWithAccessToken = {
+  accessToken?: string | { value?: string };
+  user?: {
+    accessToken?: string | { value?: string };
+  };
+};
+
+function getTokenValue(token?: string | { value?: string }): string | undefined {
+  if (typeof token === "string") {
+    return token;
+  }
+
+  return token?.value;
+}
+
+function getAccessToken(session: SessionWithAccessToken | null): string | undefined {
+  return getTokenValue(session?.accessToken) ?? getTokenValue(session?.user?.accessToken);
 }
 
 async function getShowDetail(id: string): Promise<ShowDetail> {
