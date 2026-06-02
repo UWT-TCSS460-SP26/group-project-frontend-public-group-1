@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import ReviewCard from "@/components/profile/ReviewCard";
 
 type Review = {
@@ -17,14 +18,29 @@ type EnrichedReview = Review & {
   displayPoster?: string;
 };
 
+function getAccessToken(session: unknown): string {
+  return (
+    (session as any)?.accessToken?.value ||
+    (session as any)?.accessToken ||
+    (session as any)?.user?.accessToken?.value ||
+    (session as any)?.user?.accessToken ||
+    ""
+  );
+}
+
 async function getMyReviews(accessToken: string): Promise<EnrichedReview[]> {
   const rawBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-  if (!rawBaseUrl) throw new Error("Missing NEXT_PUBLIC_API_BASE_URL");
+
+  if (!rawBaseUrl) {
+    throw new Error("Missing NEXT_PUBLIC_API_BASE_URL");
+  }
+
   const baseUrl = rawBaseUrl.replace(/\/$/, "");
 
-  // 1. Fetch user's reviews
   const reviewsResponse = await fetch(`${baseUrl}/reviews/me`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
     cache: "no-store",
   });
 
@@ -35,34 +51,32 @@ async function getMyReviews(accessToken: string): Promise<EnrichedReview[]> {
 
   const reviews: Review[] = await reviewsResponse.json();
 
-  // 2. Enrich with TMDB metadata
-  const enrichedReviews = await Promise.all(
+  return Promise.all(
     reviews.map(async (review) => {
       try {
         const endpoint = review.mediaType === "MOVIE" ? "movies" : "shows";
+
         const metaResponse = await fetch(
           `${baseUrl}/${endpoint}/${review.tmdbId}`,
-          {
-            cache: "force-cache",
-          },
+          { cache: "force-cache" },
         );
 
         if (metaResponse.ok) {
           const meta = await metaResponse.json();
+
           return {
             ...review,
             displayTitle: meta.title || meta.name || "Unknown Title",
             displayPoster: meta.poster || meta.posterUrl,
           };
         }
-      } catch (e) {
-        console.error(`Failed to enrich review ${review.id}:`, e);
+      } catch (error) {
+        console.error(`Failed to enrich review ${review.id}:`, error);
       }
+
       return { ...review, displayTitle: "Unknown Title" };
     }),
   );
-
-  return enrichedReviews;
 }
 
 export default async function ProfilePage() {
@@ -72,73 +86,162 @@ export default async function ProfilePage() {
     redirect("/");
   }
 
-  const reviews = await getMyReviews(session.accessToken as string);
+  const accessToken = getAccessToken(session);
+  const reviews = await getMyReviews(accessToken);
+  const initial = session.user?.email?.charAt(0).toUpperCase() || "U";
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6 text-white">User Profile</h1>
-
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        {/* Top Section: Account & JWT Info */}
-        <div className="p-8 border-b border-gray-200">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold text-gray-900 border-b pb-2">Account Details</h2>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
-                <p className="text-lg text-gray-900">{session.user?.email}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Role</label>
-                <p className="text-lg text-gray-900">{session.user.role || "User"}</p>
-              </div>
+    <main
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#050505",
+        color: "white",
+        padding: "2rem",
+      }}
+    >
+      <section
+        style={{
+          maxWidth: "1000px",
+          margin: "0 auto",
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: "#111",
+            border: "1px solid #2a2a2a",
+            borderRadius: "24px",
+            padding: "2rem",
+            boxShadow: "0 20px 40px rgba(0,0,0,0.45)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "1.25rem",
+              marginBottom: "2rem",
+              borderBottom: "1px solid #2a2a2a",
+              paddingBottom: "1.5rem",
+            }}
+          >
+            <div
+              style={{
+                width: "84px",
+                height: "84px",
+                borderRadius: "999px",
+                background: "linear-gradient(135deg, #2563eb, #7c3aed)",
+                color: "white",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "2.2rem",
+                fontWeight: "bold",
+              }}
+            >
+              {initial}
             </div>
 
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold text-red-700 border-b pb-2">Verification Info (JWT)</h2>
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Access Token</label>
-                  <textarea 
-                    readOnly 
-                    className="w-full h-20 p-2 mt-1 text-[10px] font-mono border border-gray-300 rounded bg-gray-50 text-gray-900"
-                    value={session.accessToken || "No access token found"}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">ID Token</label>
-                  <textarea 
-                    readOnly 
-                    className="w-full h-20 p-2 mt-1 text-[10px] font-mono border border-gray-300 rounded bg-gray-50 text-gray-900"
-                    value={session.idToken || "No ID token found"}
-                  />
-                </div>
-              </div>
+            <div>
+              <h1
+                style={{
+                  margin: 0,
+                  fontSize: "2rem",
+                  color: "white",
+                }}
+              >
+                Your Profile
+              </h1>
+
+              <p
+                style={{
+                  marginTop: "0.4rem",
+                  color: "#aaa",
+                }}
+              >
+                {session.user?.email}
+              </p>
             </div>
           </div>
-        </div>
 
-              {/* Bottom Section: Activity */}
-        <div className="p-8 bg-gray-50">
-          <h2 className="text-2xl font-bold mb-6 text-gray-900">My Activity</h2>
+          <div>
+            <h2
+              style={{
+                margin: 0,
+                fontSize: "1.6rem",
+                color: "white",
+              }}
+            >
+              Reviews & Ratings
+            </h2>
 
-          {reviews.length === 0 ? (
-            <p className="text-gray-500 italic">
-              You haven&apos;t rated or reviewed anything yet.
+            <p
+              style={{
+                marginTop: "0.4rem",
+                marginBottom: "1.5rem",
+                color: "#aaa",
+              }}
+            >
+              Manage all of your movie and TV show reviews in one place.
             </p>
-          ) : (
-            <div className="space-y-6">
-              {reviews.map((review) => (
-                <ReviewCard
-                  key={review.id}
-                  review={review}
-                  accessToken={session.accessToken as string}
-                />
-              ))}
-            </div>
-          )}
+
+            {reviews.length === 0 ? (
+              <div
+                style={{
+                  padding: "2rem",
+                  borderRadius: "18px",
+                  backgroundColor: "#181818",
+                  border: "1px dashed #333",
+                  textAlign: "center",
+                }}
+              >
+                <h3 style={{ marginTop: 0 }}>No reviews yet</h3>
+
+                <p style={{ color: "#aaa" }}>
+                  Start exploring movies and TV shows, then leave a rating or
+                  review.
+                </p>
+
+                <Link
+                  href="/"
+                  style={{
+                    display: "inline-block",
+                    marginTop: "1rem",
+                    padding: "0.75rem 1.25rem",
+                    borderRadius: "999px",
+                    backgroundColor: "#2563eb",
+                    color: "white",
+                    textDecoration: "none",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Browse Trending
+                </Link>
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "grid",
+                  gap: "1rem",
+                }}
+              >
+                {reviews.map((review) => (
+                  <div
+                    key={review.id}
+                    style={{
+                      backgroundColor: "#181818",
+                      border: "1px solid #333",
+                      borderRadius: "18px",
+                      padding: "1rem",
+                    }}
+                  >
+                    <ReviewCard review={review} accessToken={accessToken} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

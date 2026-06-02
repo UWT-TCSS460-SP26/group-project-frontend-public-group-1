@@ -120,7 +120,7 @@ export default function ReviewCard({ review, accessToken }: ReviewCardProps) {
   }
 
   return (
-    <div className="flex gap-6 p-5 border border-gray-200 rounded-xl bg-white shadow-sm">
+    <div className="flex gap-6 p-5 border border-[#333] rounded-xl bg-[#181818] shadow-sm">
       {review.displayPoster && (
         <div className="flex-shrink-0 w-24">
           <Image
@@ -142,7 +142,7 @@ export default function ReviewCard({ review, accessToken }: ReviewCardProps) {
                   ? `/movies/${review.tmdbId}`
                   : `/shows/${review.tmdbId}`
               }
-              className="text-xl font-bold text-blue-600 hover:underline"
+              className="text-xl font-bold text-blue-400 hover:underline"
             >
               {review.displayTitle}
             </Link>
@@ -152,7 +152,7 @@ export default function ReviewCard({ review, accessToken }: ReviewCardProps) {
                 {score}/10
               </span>
 
-              <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">
+              <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">
                 {new Date(review.createdAt).toLocaleDateString()}
               </span>
             </div>
@@ -180,7 +180,7 @@ export default function ReviewCard({ review, accessToken }: ReviewCardProps) {
                     setError("");
                   }}
                   disabled={isSaving}
-                  className="px-4 py-1.5 text-xs font-bold text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                  className="px-4 py-1.5 text-xs font-bold text-gray-300 border border-[#444] rounded-lg hover:bg-[#222] disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -190,7 +190,7 @@ export default function ReviewCard({ review, accessToken }: ReviewCardProps) {
                 <button
                   type="button"
                   onClick={() => setIsEditing(true)}
-                  className="px-4 py-1.5 text-xs font-bold text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all"
+                  className="px-4 py-1.5 text-xs font-bold text-gray-300 border border-[#444] rounded-lg hover:bg-[#222] transition-all"
                 >
                   Edit
                 </button>
@@ -199,7 +199,7 @@ export default function ReviewCard({ review, accessToken }: ReviewCardProps) {
                   type="button"
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="px-4 py-1.5 text-xs font-bold text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-all disabled:opacity-50"
+                  className="px-4 py-1.5 text-xs font-bold text-red-400 border border-red-900 rounded-lg hover:bg-[#2a1111] transition-all disabled:opacity-50"
                 >
                   {isDeleting ? "Deleting..." : "Delete"}
                 </button>
@@ -211,30 +211,30 @@ export default function ReviewCard({ review, accessToken }: ReviewCardProps) {
         {isEditing ? (
           <div className="mt-4 space-y-3">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">
+              <label className="block text-sm font-bold text-gray-300 mb-1">
                 Review Title
               </label>
               <input
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900"
+                className="w-full border border-[#444] rounded-lg px-3 py-2 text-white bg-[#222]"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">
+              <label className="block text-sm font-bold text-gray-300 mb-1">
                 Review Body
               </label>
               <textarea
                 value={body}
                 onChange={(event) => setBody(event.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900"
+                className="w-full border border-[#444] rounded-lg px-3 py-2 text-white bg-[#222]"
                 rows={4}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-1">
+              <label className="block text-sm font-bold text-gray-300 mb-1">
                 Score
               </label>
               <input
@@ -243,23 +243,24 @@ export default function ReviewCard({ review, accessToken }: ReviewCardProps) {
                 max={10}
                 value={score}
                 onChange={(event) => setScore(Number(event.target.value))}
-                className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-gray-900"
+                className="w-24 border border-[#444] rounded-lg px-3 py-2 text-white bg-[#222]"
               />
             </div>
           </div>
         ) : (
           <div className="mt-4">
-            <h4 className="text-md font-bold text-gray-800 italic">
+            <h4 className="text-md font-bold text-white italic">
               &quot;{review.title}&quot;
             </h4>
-            <p className="mt-2 text-sm text-gray-600 leading-relaxed">
+
+            <p className="mt-2 text-sm text-gray-300 leading-relaxed">
               {review.body}
             </p>
           </div>
         )}
 
         {error && (
-          <p className="mt-3 text-sm font-medium text-red-600">{error}</p>
+          <p className="mt-3 text-sm font-medium text-red-400">{error}</p>
         )}
       </div>
     </div>
