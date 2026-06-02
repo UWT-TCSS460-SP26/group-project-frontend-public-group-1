@@ -1,7 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import Image from "next/image";
-import Link from "next/link";
+import ReviewCard from "@/components/profile/ReviewCard";
 
 type Review = {
   id: number;
@@ -119,60 +118,22 @@ export default async function ProfilePage() {
           </div>
         </div>
 
-        {/* Bottom Section: Activity */}
+              {/* Bottom Section: Activity */}
         <div className="p-8 bg-gray-50">
           <h2 className="text-2xl font-bold mb-6 text-gray-900">My Activity</h2>
-          
+
           {reviews.length === 0 ? (
-            <p className="text-gray-500 italic">You haven't rated or reviewed anything yet.</p>
+            <p className="text-gray-500 italic">
+              You haven&apos;t rated or reviewed anything yet.
+            </p>
           ) : (
             <div className="space-y-6">
               {reviews.map((review) => (
-                <div key={review.id} className="flex gap-6 p-5 border border-gray-200 rounded-xl bg-white shadow-sm">
-                  {review.displayPoster && (
-                    <div className="flex-shrink-0 w-24">
-                      <Image 
-                        src={review.displayPoster} 
-                        alt={review.displayTitle} 
-                        width={96} 
-                        height={144} 
-                        className="rounded-lg shadow-md"
-                      />
-                    </div>
-                  )}
-                  <div className="flex-grow">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <Link 
-                          href={review.mediaType === "MOVIE" ? `/movies/${review.tmdbId}` : `/shows/${review.tmdbId}`}
-                          className="text-xl font-bold text-blue-600 hover:underline"
-                        >
-                          {review.displayTitle}
-                        </Link>
-                        <div className="flex items-center gap-3 mt-1">
-                          <span className="px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs font-black border border-yellow-200">
-                            {review.score}/10
-                          </span>
-                          <span className="text-xs text-gray-400 font-medium uppercase tracking-wider">
-                            {new Date(review.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button className="px-4 py-1.5 text-xs font-bold text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all">
-                          Edit
-                        </button>
-                        <button className="px-4 py-1.5 text-xs font-bold text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-all">
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                    <div className="mt-4">
-                      <h4 className="text-md font-bold text-gray-800 italic">"{review.title}"</h4>
-                      <p className="mt-2 text-sm text-gray-600 leading-relaxed">{review.body}</p>
-                    </div>
-                  </div>
-                </div>
+                <ReviewCard
+                  key={review.id}
+                  review={review}
+                  accessToken={session.accessToken as string}
+                />
               ))}
             </div>
           )}
