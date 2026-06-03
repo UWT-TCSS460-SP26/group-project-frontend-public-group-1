@@ -24,7 +24,7 @@ async function getPopularMovies(): Promise<MovieItem[]> {
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(
-      `Failed to fetch popular movies: ${response.status} ${response.statusText} - ${errorText}`
+      `Failed to fetch popular movies: ${response.status} ${response.statusText} - ${errorText}`,
     );
   }
 
@@ -33,12 +33,34 @@ async function getPopularMovies(): Promise<MovieItem[]> {
   return data.results ?? [];
 }
 
-export default async function BrowsePage() {
+export default async function BrowsePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ reviewStatus?: string }>;
+}) {
+  const { reviewStatus } = await searchParams;
   const movies = await getPopularMovies();
 
   return (
     <main style={{ padding: "2rem" }}>
       <h1>Browse Popular Movies</h1>
+
+      {reviewStatus === "success" && (
+        <div
+          style={{
+            marginTop: "1rem",
+            padding: "1rem",
+            borderRadius: "12px",
+            backgroundColor: "#064e3b",
+            border: "1px solid #10b981",
+            color: "#d1fae5",
+            fontWeight: "600",
+          }}
+        >
+          Review posted successfully.
+        </div>
+      )}
+
       <div
         style={{
           display: "grid",
@@ -52,12 +74,13 @@ export default async function BrowsePage() {
             key={movie.id}
             href={`/movies/${movie.id}`}
             style={{
-              border: "1px solid #ddd",
+              border: "1px solid #222",
               borderRadius: "12px",
               padding: "1rem",
               textDecoration: "none",
               color: "inherit",
               display: "block",
+              backgroundColor: "#111",
             }}
           >
             {movie.poster && (

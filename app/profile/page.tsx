@@ -18,14 +18,23 @@ type EnrichedReview = Review & {
   displayPoster?: string;
 };
 
-function getAccessToken(session: unknown): string {
-  return (
-    (session as any)?.accessToken?.value ||
-    (session as any)?.accessToken ||
-    (session as any)?.user?.accessToken?.value ||
-    (session as any)?.user?.accessToken ||
-    ""
-  );
+type SessionWithAccessToken = {
+  accessToken?: string | { value?: string };
+  user?: {
+    accessToken?: string | { value?: string };
+  };
+};
+
+function getTokenValue(token?: string | { value?: string }): string | undefined {
+  if (typeof token === "string") {
+    return token;
+  }
+
+  return token?.value;
+}
+
+function getAccessToken(session: SessionWithAccessToken | null): string {
+  return getTokenValue(session?.accessToken) ?? getTokenValue(session?.user?.accessToken) ?? "";
 }
 
 async function getMyReviews(accessToken: string): Promise<EnrichedReview[]> {
