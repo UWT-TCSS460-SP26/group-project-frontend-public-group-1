@@ -143,7 +143,7 @@ export default async function ShowDetailPage({
       redirect(`/shows/${id}?reviewStatus=error`);
     }
 
-    redirect(`/shows/${id}?reviewStatus=success`);
+    redirect("/browse/shows?reviewStatus=success"); 
   }
 
   return (

@@ -1,4 +1,4 @@
-import { auth, signOut } from "@/auth";
+import { auth, signIn, signOut } from "@/auth";
 import Link from "next/link";
 
 export default async function Header() {
@@ -18,9 +18,10 @@ export default async function Header() {
           justifyContent: "space-between",
           alignItems: "center",
           width: "100%",
+          gap: "1rem",
+          flexWrap: "wrap",
         }}
       >
-        {/* LEFT SIDE */}
         <Link
           href="/"
           style={{
@@ -33,26 +34,39 @@ export default async function Header() {
           🎬 Movie<span style={{ color: "#3b82f6" }}>Social</span>
         </Link>
 
-        {/* RIGHT SIDE */}
-        <div
+        <nav
           style={{
             display: "flex",
             alignItems: "center",
             gap: "1rem",
+            flexWrap: "wrap",
           }}
         >
           <Link
-            href="/profile"
+            href="/browse/movies"
             style={{
               color: "#ddd",
               textDecoration: "none",
               fontWeight: "600",
             }}
           >
-            Profile
+            Browse
           </Link>
 
           {session && (
+            <Link
+              href="/profile"
+              style={{
+                color: "#ddd",
+                textDecoration: "none",
+                fontWeight: "600",
+              }}
+            >
+              Profile
+            </Link>
+          )}
+
+          {session ? (
             <form
               action={async () => {
                 "use server";
@@ -74,8 +88,30 @@ export default async function Header() {
                 Sign Out
               </button>
             </form>
+          ) : (
+            <form
+              action={async () => {
+                "use server";
+                await signIn("tcss460");
+              }}
+            >
+              <button
+                type="submit"
+                style={{
+                  backgroundColor: "#2563eb",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "999px",
+                  padding: "0.6rem 1rem",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                }}
+              >
+                Sign In
+              </button>
+            </form>
           )}
-        </div>
+        </nav>
       </div>
     </header>
   );

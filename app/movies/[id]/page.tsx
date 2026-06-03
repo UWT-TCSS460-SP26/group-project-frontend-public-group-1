@@ -143,7 +143,7 @@ export default async function MovieDetailPage({
       redirect(`/movies/${id}?reviewStatus=error`);
     }
 
-    redirect(`/movies/${id}?reviewStatus=success`);
+    redirect("/browse/movies?reviewStatus=success");
   }
 
   return (
