@@ -106,7 +106,7 @@ export default async function ShowDetailPage({
     "use server";
 
     const session = await auth();
-    const token = getAccessToken(session);
+    const token = getAccessToken(session as SessionWithAccessToken | null);
 
     if (!token) {
       redirect(`/shows/${id}?reviewStatus=signin`);

@@ -31,7 +31,7 @@ export default async function Header() {
             textDecoration: "none",
           }}
         >
-          🎬 Movie<span style={{ color: "#3b82f6" }}>Social</span>
+           Movie<span style={{ color: "#3b82f6" }}>Social</span>
         </Link>
 
         <nav
@@ -51,7 +51,18 @@ export default async function Header() {
             }}
           >
             Browse
-          </Link>
+            </Link>
+
+              <Link
+                href="/about"
+                style={{
+                  color: "#ddd",
+                  textDecoration: "none",
+                  fontWeight: "600",
+                }}
+              >
+                About
+              </Link>
 
           {session && (
             <Link
@@ -61,6 +72,7 @@ export default async function Header() {
                 textDecoration: "none",
                 fontWeight: "600",
               }}
+            
             >
               Profile
             </Link>
