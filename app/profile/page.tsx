@@ -95,7 +95,7 @@ export default async function ProfilePage() {
     redirect("/");
   }
 
-  const accessToken = getAccessToken(session);
+  const accessToken = getAccessToken(session as SessionWithAccessToken);
   const reviews = await getMyReviews(accessToken);
   const initial = session.user?.email?.charAt(0).toUpperCase() || "U";
 
