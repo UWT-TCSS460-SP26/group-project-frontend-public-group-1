@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Button } from "../ui/Button";
+import { Input } from "../ui/Input";
 
 type EnrichedReview = {
   id: number;
@@ -120,39 +122,39 @@ export default function ReviewCard({ review, accessToken }: ReviewCardProps) {
   }
 
   return (
-    <div className="flex gap-6 p-5 border border-[#333] rounded-xl bg-[#181818] shadow-sm">
+    <div className="flex gap-6">
       {review.displayPoster && (
-        <div className="flex-shrink-0 w-24">
+        <div className="flex-shrink-0 w-20 sm:w-24 overflow-hidden rounded-lg shadow-lg">
           <Image
             src={review.displayPoster}
             alt={review.displayTitle}
             width={96}
             height={144}
-            className="rounded-lg shadow-md"
+            className="w-full aspect-[2/3] object-cover"
           />
         </div>
       )}
 
-      <div className="flex-grow">
-        <div className="flex justify-between items-start gap-4">
-          <div>
+      <div className="flex-grow min-w-0">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+          <div className="min-w-0 flex-grow">
             <Link
               href={
                 review.mediaType === "MOVIE"
                   ? `/movies/${review.tmdbId}`
                   : `/shows/${review.tmdbId}`
               }
-              className="text-xl font-bold text-blue-400 hover:underline"
+              className="text-xl font-black text-text-primary hover:text-brand-blue transition-colors truncate block"
             >
               {review.displayTitle}
             </Link>
 
             <div className="flex items-center gap-3 mt-1">
-              <span className="px-2.5 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs font-black border border-yellow-200">
+              <span className="bg-brand-blue text-white text-[10px] font-black px-2 py-0.5 rounded">
                 {score}/10
               </span>
 
-              <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+              <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">
                 {new Date(review.createdAt).toLocaleDateString()}
               </span>
             </div>
@@ -161,17 +163,18 @@ export default function ReviewCard({ review, accessToken }: ReviewCardProps) {
           <div className="flex gap-2">
             {isEditing ? (
               <>
-                <button
-                  type="button"
+                <Button
+                  size="sm"
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="px-4 py-1.5 text-xs font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                  variant="secondary"
                 >
                   {isSaving ? "Saving..." : "Save"}
-                </button>
+                </Button>
 
-                <button
-                  type="button"
+                <Button
+                  size="sm"
+                  variant="ghost"
                   onClick={() => {
                     setIsEditing(false);
                     setTitle(review.title);
@@ -180,87 +183,89 @@ export default function ReviewCard({ review, accessToken }: ReviewCardProps) {
                     setError("");
                   }}
                   disabled={isSaving}
-                  className="px-4 py-1.5 text-xs font-bold text-gray-300 border border-[#444] rounded-lg hover:bg-[#222] disabled:opacity-50"
                 >
                   Cancel
-                </button>
+                </Button>
               </>
             ) : (
               <>
-                <button
-                  type="button"
+                <Button
+                  size="sm"
+                  variant="outline"
                   onClick={() => setIsEditing(true)}
-                  className="px-4 py-1.5 text-xs font-bold text-gray-300 border border-[#444] rounded-lg hover:bg-[#222] transition-all"
                 >
                   Edit
-                </button>
+                </Button>
 
-                <button
-                  type="button"
+                <Button
+                  size="sm"
+                  variant="ghost"
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="px-4 py-1.5 text-xs font-bold text-red-400 border border-red-900 rounded-lg hover:bg-[#2a1111] transition-all disabled:opacity-50"
+                  className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
                 >
                   {isDeleting ? "Deleting..." : "Delete"}
-                </button>
+                </Button>
               </>
             )}
           </div>
         </div>
 
         {isEditing ? (
-          <div className="mt-4 space-y-3">
-            <div>
-              <label className="block text-sm font-bold text-gray-300 mb-1">
-                Review Title
-              </label>
-              <input
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                className="w-full border border-[#444] rounded-lg px-3 py-2 text-white bg-[#222]"
-              />
+          <div className="mt-6 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-[100px_1fr] gap-4">
+              <div>
+                <label className="block text-[10px] font-black text-text-muted uppercase mb-1">
+                  Score
+                </label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={score}
+                  onChange={(event) => setScore(Number(event.target.value))}
+                  className="py-2"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black text-text-muted uppercase mb-1">
+                  Review Title
+                </label>
+                <Input
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  className="py-2"
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-300 mb-1">
-                Review Body
+              <label className="block text-[10px] font-black text-text-muted uppercase mb-1">
+                Your Review
               </label>
-              <textarea
+              <Input
+                as="textarea"
                 value={body}
                 onChange={(event) => setBody(event.target.value)}
-                className="w-full border border-[#444] rounded-lg px-3 py-2 text-white bg-[#222]"
-                rows={4}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-bold text-gray-300 mb-1">
-                Score
-              </label>
-              <input
-                type="number"
-                min={1}
-                max={10}
-                value={score}
-                onChange={(event) => setScore(Number(event.target.value))}
-                className="w-24 border border-[#444] rounded-lg px-3 py-2 text-white bg-[#222]"
+                className="min-h-[100px] py-2 resize-none"
               />
             </div>
           </div>
         ) : (
           <div className="mt-4">
-            <h4 className="text-md font-bold text-white italic">
-              &quot;{review.title}&quot;
+            <h4 className="text-md font-bold text-text-primary italic">
+              &ldquo;{review.title}&rdquo;
             </h4>
 
-            <p className="mt-2 text-sm text-gray-300 leading-relaxed">
+            <p className="mt-2 text-sm text-text-secondary leading-relaxed line-clamp-4">
               {review.body}
             </p>
           </div>
         )}
 
         {error && (
-          <p className="mt-3 text-sm font-medium text-red-400">{error}</p>
+          <p className="mt-3 text-xs font-bold text-red-400">{error}</p>
         )}
       </div>
     </div>

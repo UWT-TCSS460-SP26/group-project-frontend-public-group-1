@@ -2,6 +2,9 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import ReviewCard from "@/components/profile/ReviewCard";
+import { Container } from "@/components/ui/Container";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 
 type Review = {
   id: number;
@@ -100,157 +103,52 @@ export default async function ProfilePage() {
   const initial = session.user?.email?.charAt(0).toUpperCase() || "U";
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "#050505",
-        color: "white",
-        padding: "2rem",
-      }}
-    >
-      <section
-        style={{
-          maxWidth: "1000px",
-          margin: "0 auto",
-        }}
-      >
-        <div
-          style={{
-            backgroundColor: "#111",
-            border: "1px solid #2a2a2a",
-            borderRadius: "24px",
-            padding: "2rem",
-            boxShadow: "0 20px 40px rgba(0,0,0,0.45)",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "1.25rem",
-              marginBottom: "2rem",
-              borderBottom: "1px solid #2a2a2a",
-              paddingBottom: "1.5rem",
-            }}
-          >
-            <div
-              style={{
-                width: "84px",
-                height: "84px",
-                borderRadius: "999px",
-                background: "linear-gradient(135deg, #2563eb, #7c3aed)",
-                color: "white",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "2.2rem",
-                fontWeight: "bold",
-              }}
-            >
+    <main className="py-12 min-h-screen">
+      <Container>
+        <Card hoverable={false} className="max-w-4xl mx-auto p-8 sm:p-12 shadow-2xl">
+          <div className="flex flex-col sm:flex-row items-center gap-8 mb-10 pb-10 border-b border-border text-center sm:text-left">
+            <div className="w-24 h-24 rounded-full bg-linear-to-br from-brand-blue to-purple-600 flex items-center justify-center text-4xl font-black shadow-lg">
               {initial}
             </div>
 
             <div>
-              <h1
-                style={{
-                  margin: 0,
-                  fontSize: "2rem",
-                  color: "white",
-                }}
-              >
-                Your Profile
-              </h1>
-
-              <p
-                style={{
-                  marginTop: "0.4rem",
-                  color: "#aaa",
-                }}
-              >
-                {session.user?.email}
-              </p>
+              <h1 className="text-4xl font-black mb-2 tracking-tight">Your Profile</h1>
+              <p className="text-text-secondary text-lg font-medium">{session.user?.email}</p>
             </div>
           </div>
 
           <div>
-            <h2
-              style={{
-                margin: 0,
-                fontSize: "1.6rem",
-                color: "white",
-              }}
-            >
-              Reviews & Ratings
-            </h2>
-
-            <p
-              style={{
-                marginTop: "0.4rem",
-                marginBottom: "1.5rem",
-                color: "#aaa",
-              }}
-            >
-              Manage all of your movie and TV show reviews in one place.
-            </p>
+            <div className="mb-8">
+              <h2 className="text-2xl font-black mb-2">Reviews & Ratings</h2>
+              <p className="text-text-secondary">
+                Manage all of your movie and TV show reviews in one place.
+              </p>
+            </div>
 
             {reviews.length === 0 ? (
-              <div
-                style={{
-                  padding: "2rem",
-                  borderRadius: "18px",
-                  backgroundColor: "#181818",
-                  border: "1px dashed #333",
-                  textAlign: "center",
-                }}
-              >
-                <h3 style={{ marginTop: 0 }}>No reviews yet</h3>
-
-                <p style={{ color: "#aaa" }}>
-                  Start exploring movies and TV shows, then leave a rating or
-                  review.
+              <div className="py-16 px-8 rounded-2xl bg-surface border border-dashed border-border text-center">
+                <h3 className="text-xl font-bold mb-3 text-text-primary">No reviews yet</h3>
+                <p className="text-text-secondary mb-8 max-w-sm mx-auto">
+                  Start exploring movies and TV shows, then leave a rating or review to see them here.
                 </p>
-
-                <Link
-                  href="/"
-                  style={{
-                    display: "inline-block",
-                    marginTop: "1rem",
-                    padding: "0.75rem 1.25rem",
-                    borderRadius: "999px",
-                    backgroundColor: "#2563eb",
-                    color: "white",
-                    textDecoration: "none",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Browse Trending
+                <Link href="/">
+                  <Button variant="secondary">
+                    Browse Trending
+                  </Button>
                 </Link>
               </div>
             ) : (
-              <div
-                style={{
-                  display: "grid",
-                  gap: "1rem",
-                }}
-              >
+              <div className="grid gap-6">
                 {reviews.map((review) => (
-                  <div
-                    key={review.id}
-                    style={{
-                      backgroundColor: "#181818",
-                      border: "1px solid #333",
-                      borderRadius: "18px",
-                      padding: "1rem",
-                    }}
-                  >
+                  <Card key={review.id} className="bg-background/50 border-border/50">
                     <ReviewCard review={review} accessToken={accessToken} />
-                  </div>
+                  </Card>
                 ))}
               </div>
             )}
           </div>
-        </div>
-      </section>
+        </Card>
+      </Container>
     </main>
   );
 }

@@ -1,4 +1,10 @@
 import Image from "next/image";
+import Link from "next/link";
+import { Container } from "@/components/ui/Container";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { SearchForm } from "@/components/ui/SearchForm";
+import { FilterBar } from "@/components/ui/FilterBar";
 
 type MovieItem = {
   id: number;
@@ -8,7 +14,12 @@ type MovieItem = {
   poster?: string;
 };
 
-async function getPopularMovies(): Promise<MovieItem[]> {
+async function getMovies(
+  sort: string = "popularity", 
+  order: string = "desc",
+  after?: string,
+  before?: string
+): Promise<MovieItem[]> {
   const rawBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   if (!rawBaseUrl) {
@@ -16,104 +27,138 @@ async function getPopularMovies(): Promise<MovieItem[]> {
   }
 
   const baseUrl = rawBaseUrl.replace(/\/$/, "");
+  
+  let url = `${baseUrl}/movies/search?page=1&limit=40&sort=${sort}&order=${order}&lang=en`;
+  if (after) url += `&after=${after}-01-01`;
+  if (before) url += `&before=${before}-12-31`;
 
-  const response = await fetch(`${baseUrl}/movies/search?page=1`, {
+  const response = await fetch(url, {
     cache: "no-store",
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `Failed to fetch popular movies: ${response.status} ${response.statusText} - ${errorText}`,
-    );
+    return [];
   }
 
   const data = await response.json();
-
   return data.results ?? [];
 }
 
 export default async function BrowsePage({
   searchParams,
 }: {
-  searchParams: Promise<{ reviewStatus?: string }>;
+  searchParams: Promise<{ 
+    reviewStatus?: string; 
+    sort?: string; 
+    order?: string;
+    after?: string;
+    before?: string;
+  }>;
 }) {
-  const { reviewStatus } = await searchParams;
-  const movies = await getPopularMovies();
+  const { 
+    reviewStatus, 
+    sort = "popularity", 
+    order = "desc",
+    after = "",
+    before = ""
+  } = await searchParams;
+  
+  const movies = await getMovies(sort, order, after, before);
+
+  const sortOptions = [
+    { value: "popularity", label: "Popularity" },
+    { value: "date", label: "Release Date" },
+    { value: "rating", label: "Rating" },
+    { value: "title", label: "Title" },
+  ];
 
   return (
-    <main style={{ padding: "2rem" }}>
-      <h1>Browse Popular Movies</h1>
+    <main className="py-12">
+      <Container>
+        <section className="flex justify-between items-end gap-6 flex-wrap mb-10">
+          <div>
+            <h1 className="text-4xl font-black mb-2 tracking-tight">Movie Catalog</h1>
+            <p className="text-text-secondary text-lg">
+              Sort and filter through our entire library.
+            </p>
+          </div>
 
-      {reviewStatus === "success" && (
-        <div
-          style={{
-            marginTop: "1rem",
-            padding: "1rem",
-            borderRadius: "12px",
-            backgroundColor: "#064e3b",
-            border: "1px solid #10b981",
-            color: "#d1fae5",
-            fontWeight: "600",
-          }}
-        >
-          Review posted successfully.
+          <SearchForm initialType="movies" />
+        </section>
+
+        <div className="flex flex-col gap-10 mb-12">
+          <div className="flex gap-3 border-b border-border pb-6">
+            <Link href="/browse/movies">
+              <Button variant="secondary" size="sm">
+                Movies
+              </Button>
+            </Link>
+
+            <Link href="/browse/shows">
+              <Button variant="outline" size="sm">
+                TV Shows
+              </Button>
+            </Link>
+          </div>
+
+          <FilterBar 
+            currentSort={sort} 
+            currentOrder={order}
+            currentAfter={after}
+            currentBefore={before}
+            baseUrl="/browse/movies" 
+            options={sortOptions} 
+          />
         </div>
-      )}
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-          gap: "1rem",
-          marginTop: "1.5rem",
-        }}
-      >
-        {movies.map((movie) => (
-          <a
-            key={movie.id}
-            href={`/movies/${movie.id}`}
-            style={{
-              border: "1px solid #222",
-              borderRadius: "12px",
-              padding: "1rem",
-              textDecoration: "none",
-              color: "inherit",
-              display: "block",
-              backgroundColor: "#111",
-            }}
-          >
-            {movie.poster && (
-              <Image
-                src={movie.poster}
-                alt={movie.title}
-                width={500}
-                height={750}
-                style={{
-                  width: "100%",
-                  height: "auto",
-                  borderRadius: "8px",
-                  marginBottom: "0.75rem",
-                }}
-              />
-            )}
+        {reviewStatus === "success" && (
+          <div className="mb-8 p-4 rounded-xl bg-green-900/30 border border-green-500/50 text-green-200 font-bold">
+            Review posted successfully.
+          </div>
+        )}
 
-            <h2 style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>
-              {movie.title}
-            </h2>
+        {movies.length === 0 ? (
+          <div className="text-center py-20 bg-surface/50 border border-dashed border-border rounded-2xl">
+            <p className="text-text-secondary text-xl font-bold">No movies found matching these filters.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
+            {movies.map((movie) => (
+              <Link key={movie.id} href={`/movies/${movie.id}?from=/browse/movies`} className="group">
+                <Card className="h-full flex flex-col p-3 group-hover:border-brand-blue transition-all duration-300">
+                  {movie.poster && (
+                    <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl mb-4">
+                      <Image
+                        src={movie.poster}
+                        alt={`Poster for ${movie.title}`}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 200px"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
+                  )}
 
-            {movie.releaseDate && <p>{movie.releaseDate}</p>}
+                  <h2 className="font-bold text-lg mb-1 line-clamp-1 group-hover:text-brand-blue transition-colors">
+                    {movie.title}
+                  </h2>
 
-            {movie.description && (
-              <p>
-                {movie.description.length > 120
-                  ? `${movie.description.slice(0, 120)}...`
-                  : movie.description}
-              </p>
-            )}
-          </a>
-        ))}
-      </div>
+                  {movie.releaseDate && (
+                    <p className="text-text-secondary text-sm mb-3">
+                      {movie.releaseDate.split("-")[0]}
+                    </p>
+                  )}
+
+                  {movie.description && (
+                    <p className="text-text-muted text-sm line-clamp-3 leading-relaxed">
+                      {movie.description}
+                    </p>
+                  )}
+                </Card>
+              </Link>
+            ))}
+          </div>
+        )}
+      </Container>
     </main>
   );
 }

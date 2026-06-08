@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { Container } from "@/components/ui/Container";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 
 const teamMembers = [
   {
@@ -21,173 +24,84 @@ const teamMembers = [
 
 export default function AboutPage() {
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        padding: "2rem",
-        backgroundColor: "#0b0b0b",
-        color: "#f5f5f5",
-      }}
-    >
-      <section style={{ maxWidth: "1100px", margin: "0 auto" }}>
+    <main className="py-12 min-h-screen">
+      <Container>
         <Link
           href="/"
-          style={{
-            color: "#60a5fa",
-            textDecoration: "none",
-            fontWeight: "700",
-          }}
+          className="inline-flex items-center text-brand-blue font-bold mb-8 hover:underline"
         >
           ← Back Home
         </Link>
 
-        <section
-          style={{
-            marginTop: "1.5rem",
-            marginBottom: "1.5rem",
-            padding: "2rem",
-            borderRadius: "18px",
-            backgroundColor: "#111",
-            border: "1px solid #222",
-          }}
-        >
-          <p
-            style={{
-              color: "#60a5fa",
-              fontWeight: "800",
-              marginBottom: "0.75rem",
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-              fontSize: "0.8rem",
-            }}
-          >
-            About MovieSocial
-          </p>
+        <section className="mb-12">
+          <Card hoverable={false} className="p-8 sm:p-12 border-brand-blue/20 shadow-2xl">
+            <p className="text-brand-blue font-black uppercase tracking-[0.2em] text-xs mb-4">
+              About MovieSocial
+            </p>
 
-          <h1
-            style={{
-              fontSize: "2.75rem",
-              lineHeight: "1.1",
-              marginBottom: "1rem",
-              maxWidth: "850px",
-            }}
-          >
-            Built for discovering, rating, and reviewing movies and shows.
-          </h1>
+            <h1 className="text-4xl sm:text-6xl font-black mb-6 leading-[1.1] tracking-tight max-w-3xl">
+              Built for discovering, rating, and reviewing movies and shows.
+            </h1>
 
-          <p
-            style={{
-              color: "#d1d5db",
-              fontSize: "1.05rem",
-              lineHeight: "1.7",
-              maxWidth: "780px",
-            }}
-          >
-            MovieSocial is our TCSS 460 consumer app. It lets users browse
-            popular movies and TV shows, search for titles, view details, sign
-            in, and interact with ratings and reviews through our upstream
-            partner API.
-          </p>
+            <p className="text-text-secondary text-lg sm:text-xl leading-relaxed max-w-2xl">
+              MovieSocial is our TCSS 460 consumer app. It lets users browse
+              popular movies and TV shows, search for titles, view details, sign
+              in, and interact with ratings and reviews through our upstream
+              partner API.
+            </p>
+          </Card>
         </section>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-            gap: "1rem",
-          }}
-        >
-          <section
-            style={{
-              backgroundColor: "#111",
-              border: "1px solid #222",
-              borderRadius: "18px",
-              padding: "1.5rem",
-            }}
-          >
-            <h2 style={{ marginBottom: "1rem" }}>Team Contributions</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          <section>
+            <h2 className="text-3xl font-black mb-6">Team Contributions</h2>
 
-            <div style={{ display: "grid", gap: "0.75rem" }}>
+            <div className="grid gap-4">
               {teamMembers.map((member) => (
-                <div
-                  key={member.name}
-                  style={{
-                    padding: "1rem",
-                    borderRadius: "12px",
-                    backgroundColor: "#0b0b0b",
-                    border: "1px solid #222",
-                  }}
-                >
-                  <h3 style={{ marginBottom: "0.35rem" }}>{member.name}</h3>
-                  <p style={{ color: "#d1d5db", lineHeight: "1.6" }}>
+                <Card key={member.name} className="p-6">
+                  <h3 className="text-xl font-bold mb-2 text-text-primary">{member.name}</h3>
+                  <p className="text-text-secondary leading-relaxed">
                     {member.role}
                   </p>
-                </div>
+                </Card>
               ))}
             </div>
           </section>
 
-          <section
-            style={{
-              backgroundColor: "#111",
-              border: "1px solid #222",
-              borderRadius: "18px",
-              padding: "1.5rem",
-            }}
-          >
-            <h2 style={{ marginBottom: "1rem" }}>Powered By</h2>
+          <section>
+            <h2 className="text-3xl font-black mb-6">Powered By</h2>
 
-            <div style={{ display: "grid", gap: "1rem", color: "#d1d5db" }}>
-              <p>
-                <strong style={{ color: "#f5f5f5" }}>Upstream Partner:</strong>{" "}
-                Group 9 API powers our browse, search, detail, rating, and
-                review experience.
-              </p>
-
-              <p>
-                <strong style={{ color: "#f5f5f5" }}>TMDB:</strong> Provides
-                movie and TV metadata like posters, titles, descriptions,
-                ratings, and release information.
-              </p>
-
-              <p>
-                <strong style={{ color: "#f5f5f5" }}>Auth²:</strong> Supports
-                OAuth2 sign-in and authenticated user actions.
-              </p>
-
-              <p>
-                <strong style={{ color: "#f5f5f5" }}>Next.js:</strong> Powers
-                the frontend routing, pages, and app structure.
-              </p>
+            <div className="grid gap-4">
+              {[
+                { label: "Upstream Partner", value: "Group 9 API powers our browse, search, detail, rating, and review experience." },
+                { label: "TMDB", value: "Provides movie and TV metadata like posters, titles, descriptions, ratings, and release information." },
+                { label: "Auth²", value: "Supports OAuth2 sign-in and authenticated user actions." },
+                { label: "Next.js", value: "Powers the frontend routing, pages, and app structure." },
+              ].map((item) => (
+                <Card key={item.label} className="p-6">
+                  <h3 className="text-lg font-bold mb-2 text-brand-blue">{item.label}</h3>
+                  <p className="text-text-secondary leading-relaxed">
+                    {item.value}
+                  </p>
+                </Card>
+              ))}
             </div>
           </section>
         </div>
 
-        <section
-          style={{
-            marginTop: "1rem",
-            backgroundColor: "#111",
-            border: "1px solid #222",
-            borderRadius: "18px",
-            padding: "1.5rem",
-          }}
-        >
-          <h2 style={{ marginBottom: "1rem" }}>Project Reflection</h2>
-          <p
-            style={{
-              color: "#d1d5db",
-              lineHeight: "1.7",
-              maxWidth: "900px",
-            }}
-          >
-            Across the project, we learned how to build a consumer app on top of
-            another team&apos;s API, work with OAuth2 authentication, attach
-            bearer tokens to authenticated requests, handle API contract issues,
-            and polish the app so it feels consistent across search, browse,
-            detail, profile, and review flows.
-          </p>
+        <section>
+          <Card hoverable={false} className="p-8 sm:p-10 bg-surface/30">
+            <h2 className="text-3xl font-black mb-4">Project Reflection</h2>
+            <p className="text-text-secondary text-lg leading-relaxed max-w-4xl">
+              Across the project, we learned how to build a consumer app on top of
+              another team&apos;s API, work with OAuth2 authentication, attach
+              bearer tokens to authenticated requests, handle API contract issues,
+              and polish the app so it feels consistent across search, browse,
+              detail, profile, and review flows.
+            </p>
+          </Card>
         </section>
-      </section>
+      </Container>
     </main>
   );
 }

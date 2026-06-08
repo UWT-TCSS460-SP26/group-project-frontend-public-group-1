@@ -1,12 +1,13 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-// search
-"use client";
-//search
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
+import { Container } from "@/components/ui/Container";
+import { Card } from "@/components/ui/Card";
+import { SearchForm } from "@/components/ui/SearchForm";
 
 type SearchItem = {
   id: number;
@@ -24,7 +25,7 @@ type SearchItem = {
 function SearchContent() {
   const searchParams = useSearchParams();
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("q") || "");
   const [type, setType] = useState(searchParams.get("type") || "movies");
   const [items, setItems] = useState<SearchItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -61,173 +62,110 @@ function SearchContent() {
     }
   }
 
-    useEffect(() => {
-      const query = searchParams.get("q");
-      const searchType = searchParams.get("type") || "movies";
+  useEffect(() => {
+    const query = searchParams.get("q");
+    const searchType = searchParams.get("type") || "movies";
 
-      if (query) {
-        runSearch(query, searchType);
-      }
-    }, [searchParams]);
-
-  async function handleSearch(event: React.FormEvent) {
-    event.preventDefault();
-
-    if (!search.trim()) {
-      return;
+    if (query) {
+      runSearch(query, searchType);
     }
-
-    await runSearch(search, type);
-  }
+  }, [searchParams]);
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "black",
-        color: "white",
-        padding: "2rem",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          marginBottom: "2rem",
-          gap: "1rem",
-          flexWrap: "wrap",
-        }}
-      >
-          <Link
-      href="/"
-      style={{
-        color: "#3b82f6",
-        textDecoration: "none",
-        fontWeight: "bold",
-        fontSize: "1.5rem",
-      }}
-    >
-      MovieSocial
-    </Link>
-
-        <form
-          onSubmit={handleSearch}
-          style={{
-            flex: 1,
-            display: "flex",
-            gap: "0.75rem",
-            justifyContent: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          <select
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-            style={inputStyle}
-          >
-            <option value="movies">Movies</option>
-            <option value="shows">TV Shows</option>
-          </select>
-
-          <input
-            type="text"
-            placeholder={`Search ${type === "movies" ? "movies" : "TV shows"}...`}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{ ...inputStyle, width: "260px" }}
-          />
-
-          <button type="submit" style={buttonStyle}>
-            Search
-          </button>
-        </form>
-      </div>
-
-      {loading && <p style={{ textAlign: "center" }}>Loading...</p>}
-      {error && <p style={{ textAlign: "center", color: "red" }}>{error}</p>}
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: "1.5rem",
-        }}
-      >
-        {items.map((item) => {
-          const title = item.title || item.name || "Untitled";
-          const poster = item.poster || item.posterUrl;
-          const description = item.overview || item.description;
-          const date = item.release_date || item.releaseDate || item.firstAirDate;
-
-          const currentSearchUrl = `/search?type=${type}&q=${encodeURIComponent(search)}`;
-
-          const href =
-            type === "shows"
-              ? `/shows/${item.id}?from=${encodeURIComponent(currentSearchUrl)}`
-              : `/movies/${item.id}?from=${encodeURIComponent(currentSearchUrl)}`;
-
-          return (
-            <a key={item.id} href={href} style={cardStyle}>
-              {poster && (
-                <img
-                  src={poster}
-                  alt={title}
-                  style={{
-                    width: "100%",
-                    borderRadius: "8px",
-                    marginBottom: "1rem",
-                  }}
-                />
-              )}
-
-              <h2 style={{ marginBottom: "0.5rem" }}>{title}</h2>
-
-              <p style={{ color: "#aaa", marginBottom: "1rem" }}>
-                {date || "No release date"}
+    <main className="py-12 min-h-screen">
+      <Container>
+        <section className="mb-12">
+          <div className="flex justify-between items-end gap-6 flex-wrap mb-8">
+            <div>
+              <h1 className="text-4xl font-black mb-2">Search Results</h1>
+              <p className="text-text-secondary text-lg">
+                Showing results for &ldquo;{searchParams.get("q") || search}&rdquo;
               </p>
+            </div>
 
-              <p style={{ fontSize: "0.9rem", lineHeight: "1.4" }}>
-                {description || "No overview available."}
-              </p>
-            </a>
-          );
-        })}
-      </div>
+            <SearchForm initialType={type} initialQuery={search} />
+          </div>
+        </section>
+
+        {loading && (
+          <div className="flex justify-center py-20">
+            <div className="animate-pulse text-xl font-bold text-text-muted">Loading results...</div>
+          </div>
+        )}
+
+        {error && (
+          <div className="text-center py-20 bg-surface border border-border rounded-2xl">
+            <p className="text-red-400 font-bold">{error}</p>
+          </div>
+        )}
+
+        {!loading && !error && items.length === 0 && searchParams.get("q") && (
+          <div className="text-center py-20 bg-surface border border-border rounded-2xl">
+            <p className="text-text-secondary text-xl">No results found for your search.</p>
+          </div>
+        )}
+
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
+          {items.map((item) => {
+            const title = item.title || item.name || "Untitled";
+            const poster = item.poster || item.posterUrl;
+            const description = item.overview || item.description;
+            const date = item.release_date || item.releaseDate || item.firstAirDate;
+
+            const currentSearchUrl = `/search?type=${type}&q=${encodeURIComponent(search)}`;
+
+            const href =
+              type === "shows"
+                ? `/shows/${item.id}?from=${encodeURIComponent(currentSearchUrl)}`
+                : `/movies/${item.id}?from=${encodeURIComponent(currentSearchUrl)}`;
+
+            return (
+              <Link key={item.id} href={href} className="group">
+                <Card className="h-full flex flex-col p-3 group-hover:border-brand-blue">
+                  {poster && (
+                    <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl mb-4">
+                      <Image
+                        src={poster}
+                        alt={title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 200px"
+                        className="object-cover transition-transform group-hover:scale-105"
+                      />
+                    </div>
+                  )}
+
+                  <h2 className="font-bold text-lg mb-1 line-clamp-1">
+                    {title}
+                  </h2>
+
+                  {date && (
+                    <p className="text-text-secondary text-sm mb-3">
+                      {date.split("-")[0]}
+                    </p>
+                  )}
+
+                  {description && (
+                    <p className="text-text-muted text-sm line-clamp-3 leading-relaxed">
+                      {description}
+                    </p>
+                  )}
+                </Card>
+              </Link>
+            );
+          })}
+        </div>
+      </Container>
     </main>
   );
 }
 
-const inputStyle = {
-  padding: "0.7rem",
-  borderRadius: "999px",
-  border: "1px solid #333",
-  backgroundColor: "#111",
-  color: "white",
-};
-
-const buttonStyle = {
-  padding: "0.7rem 1.2rem",
-  borderRadius: "999px",
-  border: "1px solid white",
-  backgroundColor: "white",
-  color: "black",
-  cursor: "pointer",
-  fontWeight: "bold",
-};
-
-const cardStyle = {
-  backgroundColor: "#111",
-  border: "1px solid #333",
-  borderRadius: "12px",
-  padding: "1rem",
-  textDecoration: "none",
-  color: "white",
-  display: "block",
-};
-
 export default function SearchPage() {
   return (
-    <Suspense fallback={<main style={{ padding: "2rem" }}>Loading...</main>}>
+    <Suspense fallback={
+      <Container className="py-20">
+        <div className="animate-pulse text-center font-bold text-text-muted">Loading Search...</div>
+      </Container>
+    }>
       <SearchContent />
     </Suspense>
   );

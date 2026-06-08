@@ -1,18 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Container } from "@/components/ui/Container";
+import { Button } from "@/components/ui/Button";
+import { SearchForm } from "@/components/ui/SearchForm";
 
-type Item = {
-  id: number;
-  title?: string;
-  name?: string;
-  description?: string;
-  releaseDate?: string;
-  firstAirDate?: string;
-  poster?: string;
-  posterUrl?: string;
+type CommunityItem = {
+  tmdbId: number;
+  mediaType: "MOVIE" | "TV";
+  averageScore: number;
+  reviewCount: number;
+  tmdb: {
+    title: string;
+    poster: string | null;
+    releaseDate: string;
+  };
 };
 
-async function getTrending(type: string): Promise<Item[]> {
+async function getCommunityFeed(sort: string = "rating"): Promise<CommunityItem[]> {
   const rawBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   if (!rawBaseUrl) {
@@ -20,15 +24,12 @@ async function getTrending(type: string): Promise<Item[]> {
   }
 
   const baseUrl = rawBaseUrl.replace(/\/$/, "");
-  const path =
-    type === "shows" ? "/shows/search?page=1" : "/movies/search?page=1";
-
-  const response = await fetch(`${baseUrl}${path}`, {
+  const response = await fetch(`${baseUrl}/community?sort=${sort}&minReviews=1&limit=21`, {
     cache: "no-store",
   });
 
   if (!response.ok) {
-    throw new Error("Failed to fetch trending items");
+    throw new Error("Failed to fetch community feed");
   }
 
   const data = await response.json();
@@ -38,167 +39,151 @@ async function getTrending(type: string): Promise<Item[]> {
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string }>;
+  searchParams: Promise<{ sort?: string }>;
 }) {
   const params = await searchParams;
-  const type = params.type === "shows" ? "shows" : "movies";
-  const items = await getTrending(type);
+  const sort = params.sort === "reviews" ? "reviews" : "rating";
+  const items = await getCommunityFeed(sort);
+  
+  const topPick = items[0];
+  const remainingItems = items.slice(1);
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "black",
-        color: "white",
-        padding: "2rem",
-      }}
-    >
-      <section
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "1rem",
-          flexWrap: "wrap",
-          marginBottom: "1.5rem",
-        }}
-      >
-        <div>
-          <h1 style={{ margin: 0, fontSize: "1.8rem" }}>
-            {type === "shows" ? "Trending TV Shows" : "Trending Movies"}
-          </h1>
-          <p style={{ color: "#aaa", marginTop: "0.4rem" }}>
-            Find your next favorite movie or show.
-          </p>
+    <main className="pb-20">
+      {/* Hero Section - The Discovery Highlight */}
+      {topPick && (
+        <section className="relative w-full h-[70vh] min-h-[500px] mb-12 overflow-hidden border-b border-border">
+          <Image
+            src={topPick.tmdb.poster || ""}
+            alt={`Background for ${topPick.tmdb.title}`}
+            fill
+            priority
+            className="object-cover opacity-40 blur-sm scale-110"
+          />
+          <div className="absolute inset-0 bg-linear-to-t from-background via-background/60 to-transparent" />
+          
+          <Container className="relative h-full flex items-center">
+            <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-12 items-center">
+              <div className="hidden md:block relative aspect-[2/3] w-full rounded-2xl overflow-hidden shadow-2xl border border-white/10 scale-105">
+                <Image
+                  src={topPick.tmdb.poster || ""}
+                  alt={`Top community pick: ${topPick.tmdb.title}`}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              
+              <div className="max-w-2xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-blue/20 border border-brand-blue/30 text-brand-blue text-xs font-black uppercase tracking-widest mb-6">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-blue opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-blue"></span>
+                  </span>
+                  Community Top Pick
+                </div>
+                
+                <h1 className="text-5xl sm:text-7xl font-black mb-4 tracking-tighter leading-[0.9]">
+                  {topPick.tmdb.title}
+                </h1>
+                
+                <div className="flex items-center gap-6 mb-8 text-lg">
+                  <div className="flex flex-col">
+                    <span className="text-text-muted text-xs font-bold uppercase tracking-wider">Avg Score</span>
+                    <span className="text-white font-black text-2xl">{topPick.averageScore}/10</span>
+                  </div>
+                  <div className="w-px h-10 bg-border" />
+                  <div className="flex flex-col">
+                    <span className="text-text-muted text-xs font-bold uppercase tracking-wider">Reviews</span>
+                    <span className="text-white font-black text-2xl">{topPick.reviewCount}</span>
+                  </div>
+                </div>
+
+                <Link href={topPick.mediaType === "TV" ? `/shows/${topPick.tmdbId}?from=/` : `/movies/${topPick.tmdbId}?from=/`}>
+                  <Button size="lg" variant="secondary" className="px-10">
+                    View Details
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </Container>
+        </section>
+      )}
+
+      <Container>
+        <section className="flex justify-between items-end gap-6 flex-wrap mb-10">
+          <div>
+            <h2 className="text-3xl font-black mb-2 tracking-tight">
+              Community Pulse
+            </h2>
+            <p className="text-text-secondary">
+              Discover what other members are watching and reviewing.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4">
+             <SearchForm />
+          </div>
+        </section>
+
+        <div className="flex gap-3 mb-8 border-b border-border pb-6">
+          <Link href="/?sort=rating">
+            <Button variant={sort === "rating" ? "secondary" : "ghost"} size="sm">
+              Top Rated
+            </Button>
+          </Link>
+
+          <Link href="/?sort=reviews">
+            <Button variant={sort === "reviews" ? "secondary" : "ghost"} size="sm">
+              Most Discussed
+            </Button>
+          </Link>
         </div>
 
-        <form
-          action="/search"
-          style={{
-            display: "flex",
-            gap: "0.75rem",
-            flexWrap: "wrap",
-          }}
-        >
-          <select name="type" defaultValue={type} style={inputStyle}>
-            <option value="movies">Movies</option>
-            <option value="shows">TV Shows</option>
-          </select>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-8">
+          {remainingItems.map((item) => {
+            const href = item.mediaType === "TV" ? `/shows/${item.tmdbId}?from=/` : `/movies/${item.tmdbId}?from=/`;
 
-          <input
-            name="q"
-            type="text"
-            placeholder={`Search ${type === "shows" ? "TV shows" : "movies"}...`}
-            style={{ ...inputStyle, width: "260px" }}
-          />
+            return (
+              <Link key={`${item.mediaType}-${item.tmdbId}`} href={href} className="group">
+                <div className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl mb-4 shadow-lg group-hover:shadow-brand-blue/20 transition-all duration-300">
+                  {item.tmdb.poster ? (
+                    <Image
+                      src={item.tmdb.poster}
+                      alt={`Poster for ${item.tmdb.title}`}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 200px"
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-surface flex items-center justify-center text-text-muted italic">
+                      No Poster
+                    </div>
+                  )}
+                  
+                  {/* Community Badge Overlay */}
+                  <div className="absolute top-3 right-3 bg-black/80 backdrop-blur-md border border-white/10 rounded-lg p-2 flex flex-col items-center min-w-[45px]">
+                    <span className="text-brand-blue font-black text-sm leading-none">{item.averageScore}</span>
+                    <span className="text-[8px] font-black text-text-muted uppercase mt-0.5 tracking-tighter">Score</span>
+                  </div>
+                </div>
 
-          <button type="submit" style={buttonStyle}>
-            Search
-          </button>
-        </form>
-      </section>
+                <h3 className="font-bold text-lg mb-1 line-clamp-1 group-hover:text-brand-blue transition-colors">
+                  {item.tmdb.title}
+                </h3>
 
-      <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.5rem" }}>
-        <Link href="/?type=movies" style={type === "movies" ? activeTab : tabStyle}>
-          Movies
-        </Link>
-
-        <Link href="/?type=shows" style={type === "shows" ? activeTab : tabStyle}>
-          TV Shows
-        </Link>
-      </div>
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(190px, 1fr))",
-          gap: "1.25rem",
-        }}
-      >
-        {items.map((item) => {
-          const title = item.title || item.name || "Untitled";
-          const poster = item.poster || item.posterUrl;
-          const date = item.releaseDate || item.firstAirDate;
-          const href =
-            type === "shows" ? `/shows/${item.id}` : `/movies/${item.id}`;
-
-          return (
-            <Link key={item.id} href={href} style={cardStyle}>
-              {poster && (
-                <Image
-                  src={poster}
-                  alt={title}
-                  width={500}
-                  height={750}
-                  style={{
-                    width: "100%",
-                    height: "270px",
-                    objectFit: "cover",
-                    borderRadius: "10px",
-                    marginBottom: "0.75rem",
-                  }}
-                />
-              )}
-
-              <h3 style={{ fontSize: "1rem", margin: "0 0 0.4rem" }}>
-                {title}
-              </h3>
-
-              {date && <p style={{ color: "#aaa", margin: "0 0 0.5rem" }}>{date}</p>}
-
-              {item.description && (
-                <p style={{ color: "#ccc", fontSize: "0.9rem", lineHeight: "1.4" }}>
-                  {item.description.slice(0, 90)}...
-                </p>
-              )}
-            </Link>
-          );
-        })}
-      </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-text-secondary text-xs font-bold uppercase tracking-wider">
+                    {item.tmdb.releaseDate.split("-")[0]}
+                  </p>
+                  <p className="text-text-muted text-[10px] font-black uppercase">
+                    {item.reviewCount} Reviews
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </Container>
     </main>
   );
 }
-
-const inputStyle = {
-  padding: "0.75rem 1rem",
-  borderRadius: "999px",
-  border: "1px solid #333",
-  backgroundColor: "#111",
-  color: "white",
-};
-
-const buttonStyle = {
-  padding: "0.75rem 1.3rem",
-  borderRadius: "999px",
-  border: "1px solid white",
-  backgroundColor: "white",
-  color: "black",
-  cursor: "pointer",
-  fontWeight: "bold",
-};
-
-const tabStyle = {
-  padding: "0.7rem 1.1rem",
-  borderRadius: "999px",
-  border: "1px solid #333",
-  backgroundColor: "#111",
-  color: "white",
-  textDecoration: "none",
-  fontWeight: "bold",
-};
-
-const activeTab = {
-  ...tabStyle,
-  backgroundColor: "#2563eb",
-  borderColor: "#2563eb",
-};
-
-const cardStyle = {
-  border: "1px solid #222",
-  backgroundColor: "#111",
-  borderRadius: "14px",
-  padding: "0.75rem",
-  textDecoration: "none",
-  color: "white",
-  display: "block",
-};
