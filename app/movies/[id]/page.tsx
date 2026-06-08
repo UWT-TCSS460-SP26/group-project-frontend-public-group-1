@@ -2,6 +2,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth, signIn } from "@/auth";
+import { Container } from "@/components/ui/Container";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 type MovieDetail = {
   id: number;
@@ -147,211 +151,168 @@ export default async function MovieDetailPage({
   }
 
   return (
-    <main style={{ padding: "2rem", maxWidth: "1000px", margin: "0 auto" }}>
-      <Link href={from || "/"}>← Back to Browse</Link>
+    <main className="py-12">
+      <Container>
+        <Link 
+          href={from || "/browse/movies"} 
+          className="inline-flex items-center text-brand-blue font-bold mb-8 hover:underline"
+        >
+          ← Back to Catalog
+        </Link>
 
-      <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(220px, 320px) 1fr",
-          gap: "2rem",
-          marginTop: "2rem",
-          alignItems: "start",
-        }}
-      >
-        {movie.poster && (
-          <Image
-            src={movie.poster}
-            alt={movie.title}
-            width={500}
-            height={750}
-            priority
-            style={{
-              width: "100%",
-              height: "auto",
-              borderRadius: "12px",
-            }}
-          />
-        )}
-
-        <div>
-          <h1>{movie.title}</h1>
-
-          {movie.releaseDate && (
-            <p>
-              <strong>Release Date:</strong> {movie.releaseDate}
-            </p>
+        <section className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-12 items-start">
+          {movie.poster && (
+            <div className="relative aspect-[2/3] w-full overflow-hidden rounded-2xl shadow-2xl">
+              <Image
+                src={movie.poster}
+                alt={movie.title}
+                fill
+                priority
+                className="object-cover"
+              />
+            </div>
           )}
 
-          {movie.runtime && (
-            <p>
-              <strong>Runtime:</strong> {movie.runtime} minutes
-            </p>
-          )}
+          <div>
+            <h1 className="text-5xl font-black mb-6 tracking-tight">{movie.title}</h1>
 
-          {movie.rating && (
-            <p>
-              <strong>TMDB Rating:</strong> {movie.rating}/10
-            </p>
-          )}
+            <div className="flex flex-wrap gap-4 mb-8">
+              {movie.releaseDate && (
+                <div className="bg-surface border border-border px-3 py-1 rounded-full text-sm font-semibold">
+                  {movie.releaseDate.split("-")[0]}
+                </div>
+              )}
+              {movie.runtime && (
+                <div className="bg-surface border border-border px-3 py-1 rounded-full text-sm font-semibold">
+                  {movie.runtime} min
+                </div>
+              )}
+              {movie.rating && (
+                <div className="bg-brand-blue/10 border border-brand-blue/30 px-3 py-1 rounded-full text-sm font-bold text-brand-blue">
+                  {movie.rating} TMDB
+                </div>
+              )}
+            </div>
 
-          {movie.genres && movie.genres.length > 0 && (
-            <p>
-              <strong>Genres:</strong> {movie.genres.join(", ")}
-            </p>
-          )}
-
-          {movie.description && (
-            <>
-              <h2>Overview</h2>
-              <p>{movie.description}</p>
-            </>
-          )}
-
-          <div style={reviewBoxStyle}>
-            <h2 style={{ marginBottom: "0.25rem" }}>Rate this movie</h2>
-            <p style={{ color: "#aaa", marginBottom: "1.5rem" }}>
-              Share your rating and thoughts with other viewers.
-            </p>
-
-            {reviewStatus === "success" && (
-              <p style={{ color: "#86efac" }}>Review submitted successfully.</p>
-            )}
-
-            {reviewStatus === "invalid" && (
-              <p style={{ color: "#fca5a5" }}>
-                Please enter a title, review, and score from 1 to 10.
+            {movie.genres && movie.genres.length > 0 && (
+              <p className="text-text-secondary mb-6">
+                <span className="text-text-muted">Genres:</span> {movie.genres.join(", ")}
               </p>
             )}
 
-            {reviewStatus === "error" && (
-              <p style={{ color: "#fca5a5" }}>
-                Could not submit your review. Check the terminal for the API error.
-              </p>
-            )}
-
-            {session ? (
-              <form action={createMovieReview}>
-                <label style={labelStyle}>Rating Score</label>
-                <input
-                  name="score"
-                  type="number"
-                  min="1"
-                  max="10"
-                  defaultValue="10"
-                  required
-                  style={inputStyle}
-                />
-
-                <label style={labelStyle}>Review Title</label>
-                <input
-                  name="title"
-                  type="text"
-                  placeholder="Short review title"
-                  required
-                  style={inputStyle}
-                />
-
-                <label style={labelStyle}>Review</label>
-                <textarea
-                  name="body"
-                  placeholder="Write your thoughts..."
-                  required
-                  style={{
-                    ...inputStyle,
-                    minHeight: "100px",
-                    borderRadius: "10px",
-                    resize: "vertical",
-                  }}
-                />
-
-                <button type="submit" style={buttonStyle}>
-                  Post Review
-                </button>
-              </form>
-            ) : (
-              <div style={{ textAlign: "center", padding: "1rem" }}>
-                <p style={{ color: "#d1d1d1", marginBottom: "1.5rem" }}>
-                  Sign in to rate and review this movie.
-                </p>
-                <form
-                  action={async () => {
-                    "use server";
-                    await signIn("tcss460");
-                  }}
-                >
-                  <button type="submit" style={buttonStyle}>
-                    Sign In
-                  </button>
-                </form>
+            {movie.description && (
+              <div className="mb-10">
+                <h2 className="text-xl font-bold mb-3">Overview</h2>
+                <p className="text-text-secondary leading-relaxed text-lg">{movie.description}</p>
               </div>
             )}
 
-            <div style={{ marginTop: "2rem" }}>
-              <h3>Community Reviews</h3>
+            <Card hoverable={false} className="p-8 mb-10">
+              <h2 className="text-2xl font-black mb-1">Rate this movie</h2>
+              <p className="text-text-secondary mb-8">
+                Share your rating and thoughts with other viewers.
+              </p>
+
+              {reviewStatus === "success" && (
+                <div className="mb-6 p-4 rounded-xl bg-green-900/30 border border-green-500/50 text-green-200 font-bold">
+                  Review submitted successfully.
+                </div>
+              )}
+
+              {(reviewStatus === "invalid" || reviewStatus === "error") && (
+                <div className="mb-6 p-4 rounded-xl bg-red-900/30 border border-red-500/50 text-red-200 font-bold">
+                  {reviewStatus === "invalid" 
+                    ? "Please enter a title, review, and score from 1 to 10."
+                    : "Could not submit your review. Please try again later."}
+                </div>
+              )}
+
+              {session ? (
+                <form action={createMovieReview} className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-6">
+                    <div>
+                      <label className="block text-sm font-bold mb-2 text-text-muted">Score (1-10)</label>
+                      <Input
+                        name="score"
+                        type="number"
+                        min="1"
+                        max="10"
+                        defaultValue="10"
+                        required
+                      />
+                    </div>
+                    <div className="flex-grow">
+                      <label className="block text-sm font-bold mb-2 text-text-muted">Review Title</label>
+                      <Input
+                        name="title"
+                        type="text"
+                        placeholder="Short review title"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold mb-2 text-text-muted">Your Review</label>
+                    <Input
+                      as="textarea"
+                      name="body"
+                      placeholder="Write your thoughts..."
+                      required
+                      className="min-h-[120px] resize-none"
+                    />
+                  </div>
+
+                  <Button type="submit" variant="secondary" className="w-full sm:w-auto">
+                    Post Review
+                  </Button>
+                </form>
+              ) : (
+                <div className="text-center py-6">
+                  <p className="text-text-secondary mb-6">
+                    Sign in to rate and review this movie.
+                  </p>
+                  <form
+                    action={async () => {
+                      "use server";
+                      await signIn("tcss460");
+                    }}
+                  >
+                    <Button type="submit" variant="secondary">
+                      Sign In to Review
+                    </Button>
+                  </form>
+                </div>
+              )}
+            </Card>
+
+            <div className="space-y-6">
+              <h3 className="text-2xl font-black">Community Reviews</h3>
 
               {reviews.length === 0 ? (
-                <p style={{ color: "#d1d1d1" }}>No reviews yet.</p>
+                <p className="text-text-muted italic">No reviews yet. Be the first to share your thoughts!</p>
               ) : (
-                reviews.map((review) => (
-                  <div key={review.id} style={reviewCardStyle}>
-                    <strong>{review.title}</strong>
-                    <p>Score: {review.score}/10</p>
-                    <p>{review.body}</p>
-                    {review.author?.name && (
-                      <p style={{ color: "#aaa" }}>By {review.author.name}</p>
-                    )}
-                  </div>
-                ))
+                <div className="grid gap-4">
+                  {reviews.map((review) => (
+                    <Card key={review.id} className="bg-surface/50">
+                      <div className="flex justify-between items-start mb-2">
+                        <strong className="text-lg">{review.title}</strong>
+                        <span className="bg-brand-blue text-white text-xs font-black px-2 py-1 rounded">
+                          {review.score}/10
+                        </span>
+                      </div>
+                      <p className="text-text-secondary leading-relaxed mb-4">{review.body}</p>
+                      {review.author?.name && (
+                        <p className="text-text-muted text-sm font-semibold">— {review.author.name}</p>
+                      )}
+                    </Card>
+                  ))}
+                </div>
               )}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </Container>
     </main>
   );
 }
-
-const reviewBoxStyle = {
-  marginTop: "2rem",
-  padding: "1.5rem",
-  border: "1px solid #333",
-  borderRadius: "14px",
-  background: "#1f1f1f",
-  color: "#f5f5f5",
-};
-
-const labelStyle = {
-  display: "block",
-  marginTop: "1rem",
-  marginBottom: "0.5rem",
-  fontWeight: "bold",
-};
-
-const inputStyle = {
-  width: "100%",
-  padding: "0.75rem",
-  borderRadius: "8px",
-  border: "1px solid #444",
-  backgroundColor: "#111",
-  color: "white",
-};
-
-const buttonStyle = {
-  marginTop: "1rem",
-  padding: "0.75rem 1.5rem",
-  backgroundColor: "#3b82f6",
-  color: "white",
-  border: "none",
-  borderRadius: "8px",
-  fontWeight: "bold",
-  cursor: "pointer",
-};
-
-const reviewCardStyle = {
-  marginTop: "1rem",
-  padding: "1rem",
-  border: "1px solid #333",
-  borderRadius: "10px",
-  backgroundColor: "#111",
-};

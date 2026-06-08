@@ -1,0 +1,6 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" rx="8" fill="black"/>
+  <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" style="font-family: ui-sans-serif, system-ui, sans-serif; font-weight: 900; font-size: 16px;">
+    <tspan fill="white">M</tspan><tspan fill="#3b82f6">S</tspan>
+  </text>
+</svg>
