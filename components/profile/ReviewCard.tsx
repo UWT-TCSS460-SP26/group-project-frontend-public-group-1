@@ -122,45 +122,47 @@ export default function ReviewCard({ review, accessToken }: ReviewCardProps) {
   }
 
   return (
-    <div className="flex gap-6">
-      {review.displayPoster && (
-        <div className="flex-shrink-0 w-20 sm:w-24 overflow-hidden rounded-lg shadow-lg">
+    <div className="grid w-full max-w-full grid-cols-[80px_minmax(0,1fr)] gap-4 overflow-hidden sm:flex sm:gap-6">
+      {review.displayPoster ? (
+        <div className="w-20 flex-shrink-0 overflow-hidden rounded-lg shadow-lg sm:w-24">
           <Image
             src={review.displayPoster}
             alt={review.displayTitle}
             width={96}
             height={144}
-            className="w-full aspect-[2/3] object-cover"
+            className="aspect-[2/3] w-full object-cover"
           />
         </div>
+      ) : (
+        <div className="w-20 flex-shrink-0 rounded-lg bg-background-secondary sm:w-24" />
       )}
 
-      <div className="flex-grow min-w-0">
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-          <div className="min-w-0 flex-grow">
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 flex-col items-start justify-between gap-4 sm:flex-row">
+          <div className="min-w-0 flex-1">
             <Link
               href={
                 review.mediaType === "MOVIE"
                   ? `/movies/${review.tmdbId}`
                   : `/shows/${review.tmdbId}`
               }
-              className="text-xl font-black text-text-primary hover:text-brand-blue transition-colors truncate block"
+              className="block max-w-full break-words text-lg font-black text-text-primary transition-colors hover:text-brand-blue sm:text-xl"
             >
               {review.displayTitle}
             </Link>
 
-            <div className="flex items-center gap-3 mt-1">
-              <span className="bg-brand-blue text-white text-[10px] font-black px-2 py-0.5 rounded">
+            <div className="mt-1 flex flex-wrap items-center gap-3">
+              <span className="rounded bg-brand-blue px-2 py-0.5 text-[10px] font-black text-white">
                 {score}/10
               </span>
 
-              <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
                 {new Date(review.createdAt).toLocaleDateString()}
               </span>
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {isEditing ? (
               <>
                 <Button
@@ -202,7 +204,7 @@ export default function ReviewCard({ review, accessToken }: ReviewCardProps) {
                   variant="ghost"
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
+                  className="text-red-400 hover:bg-red-900/20 hover:text-red-300"
                 >
                   {isDeleting ? "Deleting..." : "Delete"}
                 </Button>
@@ -213,9 +215,9 @@ export default function ReviewCard({ review, accessToken }: ReviewCardProps) {
 
         {isEditing ? (
           <div className="mt-6 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-[100px_1fr] gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[100px_1fr]">
               <div>
-                <label className="block text-[10px] font-black text-text-muted uppercase mb-1">
+                <label className="mb-1 block text-[10px] font-black uppercase text-text-muted">
                   Score
                 </label>
                 <Input
@@ -229,7 +231,7 @@ export default function ReviewCard({ review, accessToken }: ReviewCardProps) {
               </div>
 
               <div>
-                <label className="block text-[10px] font-black text-text-muted uppercase mb-1">
+                <label className="mb-1 block text-[10px] font-black uppercase text-text-muted">
                   Review Title
                 </label>
                 <Input
@@ -241,32 +243,30 @@ export default function ReviewCard({ review, accessToken }: ReviewCardProps) {
             </div>
 
             <div>
-              <label className="block text-[10px] font-black text-text-muted uppercase mb-1">
+              <label className="mb-1 block text-[10px] font-black uppercase text-text-muted">
                 Your Review
               </label>
               <Input
                 as="textarea"
                 value={body}
                 onChange={(event) => setBody(event.target.value)}
-                className="min-h-[100px] py-2 resize-none"
+                className="min-h-[100px] resize-none py-2"
               />
             </div>
           </div>
         ) : (
           <div className="mt-4">
-            <h4 className="text-md font-bold text-text-primary italic">
+            <h4 className="break-words text-md font-bold italic text-text-primary">
               &ldquo;{review.title}&rdquo;
             </h4>
 
-            <p className="mt-2 text-sm text-text-secondary leading-relaxed line-clamp-4">
+            <p className="mt-2 line-clamp-4 break-words text-sm leading-relaxed text-text-secondary">
               {review.body}
             </p>
           </div>
         )}
 
-        {error && (
-          <p className="mt-3 text-xs font-bold text-red-400">{error}</p>
-        )}
+        {error && <p className="mt-3 text-xs font-bold text-red-400">{error}</p>}
       </div>
     </div>
   );
