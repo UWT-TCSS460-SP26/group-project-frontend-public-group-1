@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const avatars = [
   "/avatars/avatar-1.png",
@@ -17,15 +17,13 @@ type ProfileAvatarPickerProps = {
 export default function ProfileAvatarPicker({
   initial,
 }: ProfileAvatarPickerProps) {
-  const [selectedAvatar, setSelectedAvatar] = useState("");
-
-  useEffect(() => {
-    const savedAvatar = localStorage.getItem("profileAvatar");
-
-    if (savedAvatar) {
-      setSelectedAvatar(savedAvatar);
+  const [selectedAvatar, setSelectedAvatar] = useState(() => {
+    if (typeof window === "undefined") {
+      return "";
     }
-  }, []);
+
+    return localStorage.getItem("profileAvatar") ?? "";
+  });
 
   function handleSelectAvatar(avatar: string) {
     setSelectedAvatar(avatar);

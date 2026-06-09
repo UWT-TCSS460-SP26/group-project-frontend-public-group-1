@@ -2,18 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function NavProfileLink() {
-  const [avatar, setAvatar] = useState("");
-
-  useEffect(() => {
-    const savedAvatar = localStorage.getItem("profileAvatar");
-
-    if (savedAvatar) {
-      setAvatar(savedAvatar);
+  const [avatar] = useState(() => {
+    if (typeof window === "undefined") {
+      return "";
     }
-  }, []);
+
+    return localStorage.getItem("profileAvatar") ?? "";
+  });
 
   return (
     <Link
