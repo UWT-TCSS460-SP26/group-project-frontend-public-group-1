@@ -2,16 +2,30 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function NavProfileLink() {
-  const [avatar] = useState(() => {
-    if (typeof window === "undefined") {
-      return "";
+  const [avatar, setAvatar] = useState("");
+
+  useEffect(() => {
+    function updateAvatar() {
+      const savedAvatar = localStorage.getItem("profileAvatar");
+      setAvatar(savedAvatar || "");
     }
 
-    return localStorage.getItem("profileAvatar") ?? "";
-  });
+    updateAvatar();
+
+    window.addEventListener("profileAvatarChanged", updateAvatar);
+    window.addEventListener("storage", updateAvatar);
+
+    return () => {
+      window.removeEventListener(
+        "profileAvatarChanged",
+        updateAvatar,
+      );
+      window.removeEventListener("storage", updateAvatar);
+    };
+  }, []);
 
   return (
     <Link
@@ -24,6 +38,7 @@ export default function NavProfileLink() {
           alt="Profile avatar"
           width={28}
           height={28}
+          sizes="28px"
           className="h-7 w-7 rounded-full object-cover"
         />
       )}
