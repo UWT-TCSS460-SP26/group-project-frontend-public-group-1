@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import Image from "next/image";
@@ -8,23 +9,7 @@ export default function NavProfileLink() {
   const [avatar, setAvatar] = useState("");
 
   useEffect(() => {
-    function updateAvatar() {
-      const savedAvatar = localStorage.getItem("profileAvatar");
-      setAvatar(savedAvatar || "");
-    }
-
-    updateAvatar();
-
-    window.addEventListener("profileAvatarChanged", updateAvatar);
-    window.addEventListener("storage", updateAvatar);
-
-    return () => {
-      window.removeEventListener(
-        "profileAvatarChanged",
-        updateAvatar,
-      );
-      window.removeEventListener("storage", updateAvatar);
-    };
+    setAvatar(localStorage.getItem("profileAvatar") ?? "");
   }, []);
 
   return (

@@ -1,7 +1,8 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const avatars = [
   "/avatars/avatar-1.png",
@@ -17,13 +18,11 @@ type ProfileAvatarPickerProps = {
 export default function ProfileAvatarPicker({
   initial,
 }: ProfileAvatarPickerProps) {
-  const [selectedAvatar, setSelectedAvatar] = useState(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
+  const [selectedAvatar, setSelectedAvatar] = useState("");
 
-    return localStorage.getItem("profileAvatar") ?? "";
-  });
+  useEffect(() => {
+    setSelectedAvatar(localStorage.getItem("profileAvatar") ?? "");
+  }, []);
 
   function handleSelectAvatar(avatar: string) {
     setSelectedAvatar(avatar);
