@@ -23,6 +23,7 @@ export default function NavProfileLink() {
           alt="Profile avatar"
           width={28}
           height={28}
+          sizes="28px"
           className="h-7 w-7 rounded-full object-cover"
         />
       )}

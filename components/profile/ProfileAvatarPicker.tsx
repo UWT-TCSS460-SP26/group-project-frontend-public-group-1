@@ -27,6 +27,9 @@ export default function ProfileAvatarPicker({
   function handleSelectAvatar(avatar: string) {
     setSelectedAvatar(avatar);
     localStorage.setItem("profileAvatar", avatar);
+
+    // instantly update navbar avatar
+    window.dispatchEvent(new Event("profileAvatarChanged"));
   }
 
   return (
@@ -38,6 +41,7 @@ export default function ProfileAvatarPicker({
             alt="Selected avatar"
             width={96}
             height={96}
+            sizes="96px"
             className="h-full w-full object-cover"
           />
         ) : (
@@ -62,6 +66,7 @@ export default function ProfileAvatarPicker({
               alt="Avatar option"
               width={40}
               height={40}
+              sizes="40px"
               className="h-full w-full object-cover"
             />
           </button>
