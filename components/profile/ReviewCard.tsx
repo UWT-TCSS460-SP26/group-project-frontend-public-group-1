@@ -1,9 +1,10 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 
@@ -34,6 +35,11 @@ export default function ReviewCard({ review, accessToken }: ReviewCardProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "");
 
@@ -157,7 +163,7 @@ export default function ReviewCard({ review, accessToken }: ReviewCardProps) {
               </span>
 
               <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
-                {new Date(review.createdAt).toLocaleDateString()}
+                {mounted ? new Date(review.createdAt).toLocaleDateString() : ""}
               </span>
             </div>
           </div>

@@ -1,17 +1,16 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function NavProfileLink() {
-  const [avatar] = useState(() => {
-    if (typeof window === "undefined") {
-      return "";
-    }
+  const [avatar, setAvatar] = useState("");
 
-    return localStorage.getItem("profileAvatar") ?? "";
-  });
+  useEffect(() => {
+    setAvatar(localStorage.getItem("profileAvatar") ?? "");
+  }, []);
 
   return (
     <Link

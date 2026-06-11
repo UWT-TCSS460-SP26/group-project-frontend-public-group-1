@@ -25,11 +25,16 @@ type SearchItem = {
 function SearchContent() {
   const searchParams = useSearchParams();
 
-  const [search, setSearch] = useState(searchParams.get("q") || "");
-  const [type, setType] = useState(searchParams.get("type") || "movies");
+  const search = searchParams.get("q") || "";
+  const type = searchParams.get("type") || "movies";
   const [items, setItems] = useState<SearchItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   async function runSearch(query: string, searchType: string) {
     try {
@@ -79,7 +84,7 @@ function SearchContent() {
             <div>
               <h1 className="text-4xl font-black mb-2">Search Results</h1>
               <p className="text-text-secondary text-lg">
-                Showing results for &ldquo;{searchParams.get("q") || search}&rdquo;
+                Showing results for &ldquo;{mounted ? (searchParams.get("q") || search) : ""}&rdquo;
               </p>
             </div>
 
